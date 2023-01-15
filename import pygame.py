@@ -32,15 +32,14 @@ class Note(pygame.sprite.Sprite): # 노트 클래스
         self.rect.x = FRAME_X + FRAME_WIDTH/4*lane
         self.rect.y = -20
         self.speed = speed
-        
-    def draw(self, screen):
-        pygame.draw.rect(screen, WHITE, self.image)
     
- #   def note_decision(self, line): # 노트 판정
+  #  def note_decision(self, line): # 노트 판정
   #      if self.rect 
         
     def update(self): # 노트 떨어트리기(스피드)
         self.rect.y += self.speed
+        if self.rect.y == FRAME_HEIGHT:
+            self.kill()
 
 class Game():
     def __init__(self):
@@ -49,9 +48,9 @@ class Game():
         self.press = pygame.mixer.Sound(press_se)
         self.font = pygame.font.Font(font_path, 50)
         self.notes = pygame.sprite.Group()
+        self.notes.add(Note(2, 15))
         
     def game_logic(self):
-        self.notes.add(Note(2, 1))
         self.notes.update()
             
         
