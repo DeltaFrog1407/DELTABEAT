@@ -61,6 +61,7 @@ class Game():
         self.score = 0
         self.hp = 100
         self.combo = 0
+        self.damage = 5
 
         self.notes_0 = [] # 라인 별 노트 저장 리스트
         self.notes_1 = []
@@ -75,13 +76,14 @@ class Game():
         self.notes_0.append(Note(0, 10))
         self.notes_1.append(Note(1, 10))
         self.notes_2.append(Note(2, 10))
+        self.notes_3.append(Note(3, 10))
         
         
     def note_decesion(self, note_ypos, line): # 노트 판정
         self.gap = abs(note_ypos - line) # 노트와 판정선의 차잇값의 절댓값
         if self.gap >= 120: # fail
             self.score += 0
-            self.hp -= 5
+            self.hp -= self.damage
             if self.combo > 0:
                 self.combo = 0
         elif self.gap < 120 and self.gap >= 80: # normal
@@ -123,6 +125,8 @@ class Game():
                 self.hp -= 5
                 if self.combo > 0:
                     self.combo = 0
+        if self.hp > 100:
+            self.hp = 100
 
     def draw_text(self, screen, text, font, x, y, main_color): # 텍스트 입력용 함수
         text_obj = font.render(text, True, main_color)
@@ -171,6 +175,17 @@ class Game():
             note.draw(screen)
         # HP 바 그리기
         self.hp_length = FRAME_HEIGHT/2
+        self.hp_half = self.hp - 50
+        self.hp_color = (0, 0, 0)
+        self.blue = 0
+        self.red = 0
+        if self.hp <= 100 and self.hp >= 50: # 체력 상태에 따른 색 코드 변경하기
+            self.blue = 255
+            self.red = int(255 - 255*self.hp_half/50)
+        elif self.hp < 50 and self.hp >= 0:
+            self.blue = int(255 - 255*(1 - self.hp/50))
+            self.red = 255
+        self.hp_color = (self.red, self.blue, 0)        
         if self.hp > 0: # 체력 바에 역동감을 주기 위한 효과 넣기
             a = random.choice([-1, 1])
             if self.hp == 100:
@@ -179,9 +194,12 @@ class Game():
                 self.hp_visual = self.hp + a
             elif self.hp_visual <= 0:
                 self.hp_visual = 0
-            pygame.draw.rect(screen, LEAF_GREEN, # 색깔
-            [FRAME_X + FRAME_WIDTH + LINE_WIDTH, (FRAME_HEIGHT / 2 + LINE_WIDTH)+(FRAME_HEIGHT / 2)*(1 - self.hp_visual/100), # 시작 위치
-            LINE_WIDTH * 2, (FRAME_HEIGHT / 2)*(self.hp_visual/100)]) # 폭과 높이
+        #hp바 그리기
+        pygame.draw.rect(screen, self.hp_color, # 색깔
+        [FRAME_X + FRAME_WIDTH + LINE_WIDTH, (FRAME_HEIGHT / 2 + LINE_WIDTH)+(FRAME_HEIGHT / 2)*(1 - self.hp_visual/100), # 시작 위치
+        LINE_WIDTH * 2, (FRAME_HEIGHT / 2)*(self.hp_visual/100)]) # 폭과 높이
+                
+            
             
         #스코어보드 밑바탕
         screen.blit(self.scoreboard, [FRAME_X, FRAME_HEIGHT * 7/9 + 40 +FRAME_WIDTH/4 - KEY_SPACE*2])
