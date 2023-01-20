@@ -12,10 +12,13 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 CYAN = (0, 255, 255)
 GRAY = (102, 102, 102)
-SKY_BLUE = (0, 51, 204)
+DEEP_BLUE = (0, 51, 204)
+SKY_BLUE = (0, 255, 230)
 OCEAN_BLUE = (51, 102, 255)
 LEAF_GREEN = (51, 255, 51)
 DARK_ORANGE = (255, 162, 0)
+RED = (255, 0, 0)
+YELLOW = (255, 255, 0)
 
 FRAME_X = 700
 FRAME_WIDTH = 400
@@ -62,6 +65,8 @@ class Game():
         self.hp = 100
         self.combo = 0
         self.damage = 5
+        self.decesion = False
+        self.tmr = 0
 
         self.notes_0 = [] # 라인 별 노트 저장 리스트
         self.notes_1 = []
@@ -86,24 +91,45 @@ class Game():
             self.hp -= self.damage
             if self.combo > 0:
                 self.combo = 0
+            self.decesion = "FAIL"
+            self.deci_color = RED
+            self.tmr = 0
+            self.tmr += 1
         elif self.gap < 120 and self.gap >= 80: # normal
             self.score += 1
             self.hp += 1
             self.combo += 1
+            self.decesion = "NORMAL"
+            self.deci_color = YELLOW
+            self.tmr = 0
+            self.tmr += 1
         elif self.gap < 80 and self.gap >= 40: # great
             self.score += 5
             self.hp += 2
             self.combo += 1
+            self.decesion = "GREAT"
+            self.deci_color = LEAF_GREEN
+            self.tmr = 0
+            self.tmr += 1
         elif self.gap < 40 and self.gap >= 0 : # perfect
             self.score += 10    
             self.hp += 3
             self.combo += 1
-            
+            self.decesion = "PERFECT"
+            self.deci_color = SKY_BLUE
+            self.tmr = 0
+            self.tmr += 1
+
+        
     def run_logic(self):
         # 노트가 밖에 나갈 때 삭제
         for note in self.notes_0:
             if note.out_of_screen():
                 del self.notes_0[0]
+                self.decesion = "FAIL"
+                self.deci_color = RED
+                self.tmr = 0
+                self.tmr += 1
                 self.hp -= 5
                 if self.combo > 0:
                     self.combo = 0
@@ -113,18 +139,30 @@ class Game():
                 self.hp -= 5
                 if self.combo > 0:
                     self.combo = 0
+                self.decesion = "FAIL"
+                self.deci_color = RED
+                self.tmr = 0
+                self.tmr += 1
         for note in self.notes_2:
             if note.out_of_screen():
                 del self.notes_2[0]
                 self.hp -= 5
                 if self.combo > 0:
                     self.combo = 0
+                self.decesion = "FAIL"
+                self.deci_color = RED
+                self.tmr = 0
+                self.tmr += 1
         for note in self.notes_3:
             if note.out_of_screen():
                 del self.notes_3[0]
                 self.hp -= 5
                 if self.combo > 0:
                     self.combo = 0
+                self.decesion = "FAIL"
+                self.deci_color = RED
+                self.tmr = 0
+                self.tmr += 1
         if self.hp > 100:
             self.hp = 100
 
@@ -133,7 +171,14 @@ class Game():
         text_rect = text_obj.get_rect()
         text_rect.center = x,y
         screen.blit(text_obj, text_rect)
-      
+    
+    def draw_text_foggy(self, screen, text, font, x, y, main_color, parameter): # 텍스트 입력용 함수
+        text_obj = font.render(text, True, main_color)
+        text_rect = text_obj.get_rect()
+        text_obj.set_alpha(parameter)
+        text_rect.center = x,y
+        screen.blit(text_obj, text_rect)
+            
     def display_object(self, screen): # 오브젝트(노트 등) 그리기 함수
         # 라인별 클릭 효과 그리기
         if self.pressed_d: # d키 클릭 효과
@@ -198,15 +243,24 @@ class Game():
         pygame.draw.rect(screen, self.hp_color, # 색깔
         [FRAME_X + FRAME_WIDTH + LINE_WIDTH, (FRAME_HEIGHT / 2 + LINE_WIDTH)+(FRAME_HEIGHT / 2)*(1 - self.hp_visual/100), # 시작 위치
         LINE_WIDTH * 2, (FRAME_HEIGHT / 2)*(self.hp_visual/100)]) # 폭과 높이
-                
-            
-            
+        #콤보 시에 표시
+        if self.combo > 0:
+            self.draw_text(screen, "COMBO", self.font, FRAME_X + FRAME_WIDTH/2, FRAME_HEIGHT*1/6, DARK_ORANGE)
+            self.draw_text(screen, "x" + str(self.combo), self.font, FRAME_X + FRAME_WIDTH/2, FRAME_HEIGHT*1/6 + 50, DARK_ORANGE)
         #스코어보드 밑바탕
         screen.blit(self.scoreboard, [FRAME_X, FRAME_HEIGHT * 7/9 + 40 +FRAME_WIDTH/4 - KEY_SPACE*2])
         # 스코어
         self.score_visual = "{0:O>11}".format(self.score)
         self.score_visual_two = " ".join(self.score_visual)
         self.draw_text(screen, self.score_visual_two, self.font, FRAME_X + FRAME_WIDTH/2, SCREEN_HEIGHT - 40, DARK_ORANGE)
+        # 노트 판정에 따른 인디케이터
+        if self.decesion:
+            if self.tmr >= 1 and self.tmr <= 20:
+                self.tmr += 1
+                self.draw_text_foggy(screen, self.decesion, self.font, FRAME_X + FRAME_WIDTH/2, SCREEN_HEIGHT*3/5 - self.tmr, self.deci_color, 250 - self.tmr)
+            elif self.tmr < 100:
+                self.tmr = 0
+                self.decesion = False
 
     def display_frame(self, screen, keycolor, fontcolor): #게임 프레임 그리기 - 플레이하는 부분
         screen.fill(BLACK)
@@ -226,10 +280,6 @@ class Game():
             pygame.draw.rect(screen, keycolor, [x+FRAME_WIDTH*i/4, y, keyframe_size, keyframe_size])
             keyset = self.font.render(key, True, fontcolor)
             screen.blit(keyset, (x+FRAME_WIDTH*i/4+keyframe_size/2-KEY_SPACE, y+KEY_SPACE))
-        #콤보 시에 표시
-        if self.combo > 0:
-            self.draw_text(screen, "COMBO", self.font, FRAME_X + FRAME_WIDTH/2, FRAME_HEIGHT*1/6, DARK_ORANGE)
-            self.draw_text(screen, "x" + str(self.combo), self.font, FRAME_X + FRAME_WIDTH/2, FRAME_HEIGHT*1/6 + 50, DARK_ORANGE)
 
 
             
