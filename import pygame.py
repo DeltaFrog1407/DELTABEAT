@@ -134,6 +134,11 @@ class Game():
         self.notes_0.append(Note_long(0, 10, 3))
         self.notes_0.append(Note_long(0, 10, 4))
         self.notes_0.append(Note_long(0, 10, 5))
+        self.notes_0.append(Note_long(0, 10, 6))
+        self.notes_0.append(Note_long(0, 10, 7))
+        self.notes_0.append(Note_long(0, 10, 8))
+        self.notes_2.append(Note(2, 10))
+
         
         
     def note_decesion(self, note_ypos, line): # 노트 판정
@@ -177,8 +182,21 @@ class Game():
 
         
     def run_logic(self):
-        # 노트가 밖에 나갈 때 삭제
+        # 롱노트 D
         for note in self.notes_0:
+            if self.pressed_d == True and note.type == 1 and abs(self.notes_0[0].rect.y - FRAME_HEIGHT*7/9 + 5) < 20:
+                del self.notes_0[0]
+                effect = Effect(FRAME_X + FRAME_WIDTH/4 - 50, FRAME_HEIGHT* 7/9 + 5)
+                self.effect_group.add(effect)
+                self.press.play(0)
+                self.score += 10    
+                self.hp += 3
+                self.combo += 1
+                self.decesion = "PERFECT"
+                self.deci_color = SKY_BLUE
+                self.tmr = 0
+                self.tmr += 1
+        # 노트가 밖에 나갈 때 삭제
             if note.out_of_screen():
                 del self.notes_0[0]
                 self.decesion = "FAIL"
@@ -357,10 +375,7 @@ class Game():
                             if abs(self.line - note.rect.y) < 120 and note.lane == 0: # 이펙트 개체 생성 - FAIL만 아닐 시
                                 effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
                                 self.effect_group.add(effect)
-                                
-                
 
-                                
                 if event.key == pygame.K_f: # f 키를 누름
                     self.press.play(0)
                     self.pressed_f = True
