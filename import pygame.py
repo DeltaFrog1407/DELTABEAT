@@ -48,6 +48,29 @@ class Note(): # 노트 클래스
         if self.rect.y >= FRAME_HEIGHT - 80:
             return True
         return False
+    
+class Note_long(): # 노트 클래스
+    def __init__(self, lane, speed, long_num):
+        self.lane = lane
+        note_images_list = [resource_path("note1.png"), resource_path("note2.png")]
+        image_selected = random.choice(note_images_list)
+        self.image = pygame.image.load(image_selected)
+        self.rect = self.image.get_rect()
+        self.rect.x = FRAME_X + FRAME_WIDTH/4*self.lane
+        self.rect.y = -20*long_num
+        self.speed = speed
+        self.type = 1
+
+    def draw(self, screen): # 노트 그리기
+        screen.blit(self.image, self.rect)
+
+    def update(self): # 노트 떨어트리기(스피드)
+        self.rect.y += self.speed
+
+    def out_of_screen(self): # 노트가 화면 밖에 나갈 때 삭제
+        if self.rect.y >= FRAME_HEIGHT - 80:
+            return True
+        return False
         
 
 class Effect(pygame.sprite.Sprite):
@@ -106,9 +129,11 @@ class Game():
         self.pressed_j = False
         self.pressed_k = False
         
-        self.notes_0.append(Note(0, 10))
-        self.notes_1.append(Note(1, 10))
-        self.notes_2.append(Note(2, 10))
+        self.notes_0.append(Note_long(0, 10, 1))
+        self.notes_0.append(Note_long(0, 10, 2))
+        self.notes_0.append(Note_long(0, 10, 3))
+        self.notes_0.append(Note_long(0, 10, 4))
+        self.notes_0.append(Note_long(0, 10, 5))
         
         
     def note_decesion(self, note_ypos, line): # 노트 판정
@@ -325,14 +350,17 @@ class Game():
                     self.press.play(0)
                     self.pressed_d = True
                     for note in self.notes_0:
-                        if abs(self.line - note.rect.y) <= 200 and note.lane == 0: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
-                            self.note_decesion(note.rect.y, self.line)
-                            del self.notes_0[0]
-                        if abs(self.line - note.rect.y) < 120 and note.lane == 0: # 이펙트 개체 생성 - FAIL만 아닐 시
-                            effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
-                            self.effect_group.add(effect)
-                            
+                        if note.type == 0:
+                            if abs(self.line - note.rect.y) <= 200 and note.lane == 0: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
+                                self.note_decesion(note.rect.y, self.line)
+                                del self.notes_0[0]
+                            if abs(self.line - note.rect.y) < 120 and note.lane == 0: # 이펙트 개체 생성 - FAIL만 아닐 시
+                                effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
+                                self.effect_group.add(effect)
+                                
+                
 
+                                
                 if event.key == pygame.K_f: # f 키를 누름
                     self.press.play(0)
                     self.pressed_f = True
@@ -367,6 +395,7 @@ class Game():
                             effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
                             self.effect_group.add(effect)
 
+                
             if event.type == pygame.KEYUP: # 키를 뗌
                 if event.key == pygame.K_d:
                     self.pressed_d = False
