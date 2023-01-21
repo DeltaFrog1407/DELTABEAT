@@ -28,7 +28,6 @@ KEY_SPACE = 10
 
 class Note(): # 노트 클래스
     def __init__(self, lane, speed):
-        super().__init__()
         self.lane = lane
         note_images_list = [resource_path("note1.png"), resource_path("note2.png")]
         image_selected = random.choice(note_images_list)
@@ -37,6 +36,7 @@ class Note(): # 노트 클래스
         self.rect.x = FRAME_X + FRAME_WIDTH/4*self.lane
         self.rect.y = -20
         self.speed = speed
+        self.type = 0
 
     def draw(self, screen): # 노트 그리기
         screen.blit(self.image, self.rect)
@@ -48,8 +48,35 @@ class Note(): # 노트 클래스
         if self.rect.y >= FRAME_HEIGHT - 80:
             return True
         return False
+        
 
-
+class Effect(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.images = []
+        for num in range(1, 32):
+            img_path = resource_path("effect/blue_{}.png".format(num))
+            img = pygame.image.load(img_path)
+            self.images.append(img)
+        self.index = 0
+        self.image = self.images[self.index]
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+        self.counter = 0
+        
+    def update(self):
+        speed = 1
+        self.counter += 1
+        if self.counter >= speed and self.index < len(self.images) - 1:
+            self.counter = 0
+            self.index += 1
+            self.image = self.images[self.index]
+        
+        if self.index >= len(self.images) - 1 and self.counter > speed:
+            self.kill()
+            
+        
+        
 class Game():
     def __init__(self):
         font_path = resource_path("big_noodle_titling.ttf")
@@ -67,6 +94,7 @@ class Game():
         self.damage = 5
         self.decesion = False
         self.tmr = 0
+        self.effect_group = pygame.sprite.Group()
 
         self.notes_0 = [] # 라인 별 노트 저장 리스트
         self.notes_1 = []
@@ -81,7 +109,6 @@ class Game():
         self.notes_0.append(Note(0, 10))
         self.notes_1.append(Note(1, 10))
         self.notes_2.append(Note(2, 10))
-        self.notes_3.append(Note(3, 10))
         
         
     def note_decesion(self, note_ypos, line): # 노트 판정
@@ -95,6 +122,7 @@ class Game():
             self.deci_color = RED
             self.tmr = 0
             self.tmr += 1
+
         elif self.gap < 120 and self.gap >= 80: # normal
             self.score += 1
             self.hp += 1
@@ -103,6 +131,7 @@ class Game():
             self.deci_color = YELLOW
             self.tmr = 0
             self.tmr += 1
+            
         elif self.gap < 80 and self.gap >= 40: # great
             self.score += 5
             self.hp += 2
@@ -111,6 +140,7 @@ class Game():
             self.deci_color = LEAF_GREEN
             self.tmr = 0
             self.tmr += 1
+
         elif self.gap < 40 and self.gap >= 0 : # perfect
             self.score += 10    
             self.hp += 3
@@ -165,6 +195,8 @@ class Game():
                 self.tmr += 1
         if self.hp > 100:
             self.hp = 100
+        # 이펙트 업데이트
+        self.effect_group.update()
 
     def draw_text(self, screen, text, font, x, y, main_color): # 텍스트 입력용 함수
         text_obj = font.render(text, True, main_color)
@@ -261,6 +293,9 @@ class Game():
             elif self.tmr < 100:
                 self.tmr = 0
                 self.decesion = False
+        # 노트 타격 효과 그리기
+        self.effect_group.draw(screen)
+
 
     def display_frame(self, screen, keycolor, fontcolor): #게임 프레임 그리기 - 플레이하는 부분
         screen.fill(BLACK)
@@ -280,9 +315,7 @@ class Game():
             pygame.draw.rect(screen, keycolor, [x+FRAME_WIDTH*i/4, y, keyframe_size, keyframe_size])
             keyset = self.font.render(key, True, fontcolor)
             screen.blit(keyset, (x+FRAME_WIDTH*i/4+keyframe_size/2-KEY_SPACE, y+KEY_SPACE))
-
-
-            
+    
     def process_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -292,34 +325,47 @@ class Game():
                     self.press.play(0)
                     self.pressed_d = True
                     for note in self.notes_0:
-                        if abs(self.line - note.rect.y) <= 200 and note.lane == 0:
+                        if abs(self.line - note.rect.y) <= 200 and note.lane == 0: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
                             self.note_decesion(note.rect.y, self.line)
                             del self.notes_0[0]
+                        if abs(self.line - note.rect.y) < 120 and note.lane == 0: # 이펙트 개체 생성 - FAIL만 아닐 시
+                            effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
+                            self.effect_group.add(effect)
+                            
 
                 if event.key == pygame.K_f: # f 키를 누름
                     self.press.play(0)
                     self.pressed_f = True
                     for note in self.notes_1:
-                        if abs(self.line - note.rect.y) <= 200 and note.lane == 1:
+                        if abs(self.line - note.rect.y) <= 200 and note.lane == 1: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
                             self.note_decesion(note.rect.y, self.line)
                             del self.notes_1[0]
+                        if abs(self.line - note.rect.y) < 120 and note.lane == 1: # 이펙트 개체 생성 - FAIL만 아닐 시
+                            effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
+                            self.effect_group.add(effect)
 
 
                 if event.key == pygame.K_j: # j 키를 누름
                     self.press.play(0)
                     self.pressed_j = True
                     for note in self.notes_2:
-                        if abs(self.line - note.rect.y) <= 200 and note.lane == 2:
+                        if abs(self.line - note.rect.y) <= 200 and note.lane == 2: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
                             self.note_decesion(note.rect.y, self.line)
                             del self.notes_2[0]
+                        if abs(self.line - note.rect.y) < 120 and note.lane == 2: # 이펙트 개체 생성 - FAIL만 아닐 시
+                            effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
+                            self.effect_group.add(effect)
 
                 if event.key == pygame.K_k: # k 키를 누름
                     self.press.play(0)
                     self.pressed_k = True
                     for note in self.notes_3:
-                        if abs(self.line - note.rect.y) <= 200 and note.lane == 3:
+                        if abs(self.line - note.rect.y) <= 200 and note.lane == 3: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
                             self.note_decesion(note.rect.y, self.line)
                             del self.notes_3[0]
+                        if abs(self.line - note.rect.y) < 120 and note.lane == 3: # 이펙트 개체 생성 - FAIL만 아닐 시
+                            effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
+                            self.effect_group.add(effect)
 
             if event.type == pygame.KEYUP: # 키를 뗌
                 if event.key == pygame.K_d:
@@ -346,6 +392,7 @@ def main():
     clock = pygame.time.Clock()
     game = Game()
     done = False
+
 
     while not done:
         done = game.process_events()
