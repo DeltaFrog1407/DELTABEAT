@@ -29,7 +29,7 @@ KEY_SPACE = 10
 
 
 class Note(): # 노트 클래스
-    def __init__(self, lane, speed):
+    def __init__(self, lane, speed, frame):
         self.lane = lane
         note_images_list = [resource_path("note1.png"), resource_path("note2.png")]
         image_selected = random.choice(note_images_list)
@@ -40,12 +40,13 @@ class Note(): # 노트 클래스
         self.speed = speed
         self.type = 0
         self.decesion = self.rect.y + 20
+        self.frame = frame
 
     def draw(self, screen): # 노트 그리기
         screen.blit(self.image, self.rect)
 
     def update(self): # 노트 떨어트리기(스피드)
-        self.rect.y += (self.speed*FPS/60)
+        self.rect.y += (self.speed*self.frame/60)
         self.decesion = self.rect.y + 20
 
     def out_of_screen(self): # 노트가 화면 밖에 나갈 때 삭제
@@ -54,7 +55,7 @@ class Note(): # 노트 클래스
         return False
     
 class Note_long(): # 노트 클래스
-    def __init__(self, lane, speed, long_num):
+    def __init__(self, lane, speed, long_num, frame):
         self.lane = lane
         self.length = long_num
         note_images_path = resource_path("note_long.png")
@@ -67,6 +68,7 @@ class Note_long(): # 노트 클래스
         self.speed = speed
         self.type = 1
         self.decesion_code = 1
+        self.frame = frame
 
     def boom(self):
         self.length -= 1
@@ -78,14 +80,13 @@ class Note_long(): # 노트 클래스
         screen.blit(self.image, self.rect)
 
     def update(self): # 노트 떨어트리기(스피드)
-        self.rect.y += self.speed
+        self.rect.y += (self.speed*self.frame/60)
         self.decesion = self.rect.y + 10*self.length
 
     def out_of_screen(self): # 노트가 화면 밖에 나갈 때 삭제
         if self.rect.y >= FRAME_HEIGHT - 80:
             return True
         return False
-        
 
 class Effect(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -150,7 +151,6 @@ class Game():
         self.min = 0
         self.tick = 0
         self.ticks = 0
-        self.notes_0.append(Note(0, 15))
     
     
         
@@ -537,57 +537,64 @@ class Game():
                     self.pressed_j = False
                 if event.key == pygame.K_k:
                     self.pressed_k = False
-    def put_note_0(self, speed, time, code, long):               # 노트 배치 함수
+    def put_note_0(self, speed, time, code, long, frame):               # 노트 배치 함수
         if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 0:
-            self.notes_0.append(Note(0, speed))
+            self.notes_0.append(Note(0, speed, frame))
         if self.ticks == time and code == 1:
-            self.notes_0.append(Note_long(0, speed, long))
-    def put_note_1(self, speed, time, code, long):
+            self.notes_0.append(Note_long(0, speed, long, frame))
+    def put_note_1(self, speed, time, code, long, frame):
         if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 0:
-            self.notes_1.append(Note(1, speed))
+            self.notes_1.append(Note(1, speed, frame))
         if self.ticks == time and code == 1:
-            self.notes_1.append(Note_long(1, speed, long))
-    def put_note_2(self, speed, time, code, long):
+            self.notes_1.append(Note_long(1, speed, long, frame))
+    def put_note_2(self, speed, time, code, long, frame):
         if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 0:
-            self.notes_2.append(Note(2, speed))
+            self.notes_2.append(Note(2, speed, frame))
         if self.ticks == time and code == 1:
-            self.notes_2.append(Note_long(2, speed, long))
-    def put_note_3(self, speed, time, code, long):
+            self.notes_2.append(Note_long(2, speed, long, frame))
+    def put_note_3(self, speed, time, code, long, frame):
         if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 0:
-            self.notes_3.append(Note(3, speed))
+            self.notes_3.append(Note(3, speed, frame))
         if self.ticks == time and code == 1:
-            self.notes_3.append(Note_long(3, speed, long))
+            self.notes_3.append(Note_long(3, speed, long, frame))
             
-    def pos_a(self):                               # 채보 함수
-        self.put_note_0(15, 317, 0, 0)
-        self.put_note_1(15, 456, 0, 0)
-        self.put_note_2(15, 598, 0, 0)
-        self.put_note_3(15, 671, 0, 0)
-        self.put_note_1(15, 739, 0, 0)
-        self.put_note_2(15, 812, 0, 0)
-        self.put_note_3(15, 852, 0, 0)
-        self.put_note_0(15, 880, 0, 0)
-        self.put_note_0(15, 916, 0, 0)
-        self.put_note_0(15, 952, 0, 0)
-        self.put_note_1(15, 982, 0, 0)
-        self.put_note_2(15, 1016, 0, 0)
-        self.put_note_2(15, 1054, 0, 0)
-        self.put_note_3(15, 1088, 0, 0)
-        self.put_note_0(15, 1097, 0, 0)
-        self.put_note_3(15, 1159, 0, 0)
-        self.put_note_0(15, 1191, 0, 0)
-        self.put_note_2(15, 1228, 0, 0)
-        self.put_note_3(15, 1261, 0, 0)
-        self.put_note_1(15, 1295, 0, 0)
-        self.put_note_2(15, 1331, 0, 0)
-        self.put_note_0(15, 1366, 0, 0)
-        self.put_note_3(15, 1402, 0, 0)
-        self.put_note_0(15, 1437, 0, 0)
-        self.put_note_1(15, 1474, 0, 0)
-        self.put_note_1(15, 1506, 0, 0)
-        self.put_note_2(15, 1543, 0, 0)
-        self.put_note_3(15, 1577, 0, 0)
-        self.put_note_1(15, 1585, 0, 0)
+    def frame(self, frame):
+        self.frame_rate = frame
+            
+    def pos_a(self): # 채보 함수
+        self.put_note_0(15, 173, 0, 0, self.frame_rate)
+        self.put_note_1(15, 311, 0, 0, self.frame_rate)
+        self.put_note_2(15, 450, 0, 0, self.frame_rate)
+        self.put_note_3(15, 585, 0, 0, self.frame_rate)
+        self.put_note_2(15, 657, 0, 0, self.frame_rate)
+        self.put_note_1(15, 725, 0, 0, self.frame_rate)
+        self.put_note_0(15, 793, 0, 0, self.frame_rate)
+        self.put_note_1(15, 864, 0, 0, self.frame_rate)
+        self.put_note_2(15, 932, 0, 0, self.frame_rate)
+        self.put_note_1(15, 1002, 0, 0, self.frame_rate)
+        self.put_note_2(15, 1073, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1080, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1151, 0, 0, self.frame_rate)
+        self.put_note_1(15, 1186, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1223, 0, 0, self.frame_rate)
+        self.put_note_1(15, 1239, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1255, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1272, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1293, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1328, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1361, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1378, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1396, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1414, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1432, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1468, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1503, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1519, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1536, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1555, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1562, 0, 0, self.frame_rate)
+        
+        
         
         
             
@@ -599,18 +606,18 @@ def resource_path(relative_path): # 리소스 경로 함수
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
+
 def main():
-    global FPS
     pygame.init()
     pygame.display.set_caption("DELTABEAT")
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     game = Game()
     done = False
-    FPS = clock.get_fps()
 
     while not done:
-        
+        fr = clock.get_fps()
+        game.frame(fr)
         done = game.process_events()
         game.pos_a()
         game.run_logic()
@@ -618,7 +625,7 @@ def main():
         game.display_object(screen)
         pygame.display.flip()
         clock.tick(60)
-        print(FPS)
+
 
     pygame.quit()
 
