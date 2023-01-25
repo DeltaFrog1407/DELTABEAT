@@ -82,6 +82,7 @@ class Note_long(): # 노트 클래스
     def update(self): # 노트 떨어트리기(스피드)
         self.rect.y += (self.speed*self.frame/60)
         self.decesion = self.rect.y + 10*self.length
+        print(self.frame)
 
     def out_of_screen(self): # 노트가 화면 밖에 나갈 때 삭제
         if self.rect.y >= FRAME_HEIGHT - 80:
@@ -562,37 +563,21 @@ class Game():
         self.frame_rate = frame
             
     def pos_a(self): # 채보 함수
-        self.put_note_0(15, 173, 0, 0, self.frame_rate)
-        self.put_note_1(15, 311, 0, 0, self.frame_rate)
-        self.put_note_2(15, 450, 0, 0, self.frame_rate)
-        self.put_note_3(15, 585, 0, 0, self.frame_rate)
-        self.put_note_2(15, 657, 0, 0, self.frame_rate)
-        self.put_note_1(15, 725, 0, 0, self.frame_rate)
-        self.put_note_0(15, 793, 0, 0, self.frame_rate)
-        self.put_note_1(15, 864, 0, 0, self.frame_rate)
-        self.put_note_2(15, 932, 0, 0, self.frame_rate)
-        self.put_note_1(15, 1002, 0, 0, self.frame_rate)
-        self.put_note_2(15, 1073, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1080, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1151, 0, 0, self.frame_rate)
-        self.put_note_1(15, 1186, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1223, 0, 0, self.frame_rate)
-        self.put_note_1(15, 1239, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1255, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1272, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1293, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1328, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1361, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1378, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1396, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1414, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1432, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1468, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1503, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1519, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1536, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1555, 0, 0, self.frame_rate)
-        self.put_note_3(15, 1562, 0, 0, self.frame_rate)
+        self.put_note_0(15, 177, 0, 0, self.frame_rate)
+        self.put_note_1(15, 324, 0, 0, self.frame_rate)
+        self.put_note_2(15, 466, 0, 0, self.frame_rate)
+        self.put_note_3(15, 603, 0, 0, self.frame_rate)
+        self.put_note_2(15, 677, 0, 0, self.frame_rate)
+        self.put_note_1(15, 748, 0, 0, self.frame_rate)
+        self.put_note_0(15, 819, 0, 0, self.frame_rate)
+        self.put_note_1(15, 886, 0, 0, self.frame_rate)
+        self.put_note_1(15, 955, 0, 0, self.frame_rate)
+        self.put_note_2(15, 1028, 0, 0, self.frame_rate)
+        self.put_note_2(15, 1101, 0, 0, self.frame_rate)
+        self.put_note_3(15, 1109, 0, 0, self.frame_rate)
+        
+        
+
         
         
         
@@ -624,7 +609,7 @@ def main():
         game.display_frame(screen, LEAF_GREEN, WHITE)
         game.display_object(screen)
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick_busy_loop(60)
 
 
     pygame.quit()
