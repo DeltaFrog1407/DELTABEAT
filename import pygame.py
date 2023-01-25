@@ -144,13 +144,15 @@ class Game():
         self.pressed_j = False
         self.pressed_k = False
         
+        self.index = 0 # 인덱스 숫자가 바뀜에 따라 게임 화면/상태가 바뀜 0: 메인 메뉴 1: 게임 오버 메뉴 2: 결과 표시창 3: 곡 선택 메뉴 4: 게임 플레이 메뉴
+        
         music_path = resource_path("Children_Record.wav")
         pygame.mixer.music.load(music_path)
         self.music_play = False
         self.sec = 0
         self.min = 0
         self.tick = 0
-        self.ticks = 0    
+        self.ticks = 0
     
         
     def note_decesion(self, note_ypos, line): # 노트 판정
@@ -166,7 +168,15 @@ class Game():
             self.tmr += 1
 
         elif self.gap < 120 and self.gap >= 80: # normal
-            self.score += 1
+            self.score += 100
+            if self.combo >= 100 and self.combo < 200:
+                self.score += 150
+            elif self.combo >= 200 and self.combo < 300:
+                self.score += 200
+            elif self.combo >= 300 and self.combo < 400:
+                self.score += 250
+            elif self.combo >= 400 and self.combo < 500:
+                self.score += 300
             self.hp += 1
             self.combo += 1
             self.decesion = "NORMAL"
@@ -175,7 +185,15 @@ class Game():
             self.tmr += 1
             
         elif self.gap < 80 and self.gap >= 40: # great
-            self.score += 5
+            self.score += 200
+            if self.combo >= 100 and self.combo < 200:
+                self.score += 150
+            elif self.combo >= 200 and self.combo < 300:
+                self.score += 200
+            elif self.combo >= 300 and self.combo < 400:
+                self.score += 250
+            elif self.combo >= 400 and self.combo < 500:
+                self.score += 300
             self.hp += 2
             self.combo += 1
             self.decesion = "GREAT"
@@ -184,7 +202,15 @@ class Game():
             self.tmr += 1
 
         elif self.gap < 40 and self.gap >= 0 : # perfect
-            self.score += 10    
+            self.score += 300
+            if self.combo >= 100 and self.combo < 200:
+                self.score += 150
+            elif self.combo >= 200 and self.combo < 300:
+                self.score += 200
+            elif self.combo >= 300 and self.combo < 400:
+                self.score += 250
+            elif self.combo >= 400 and self.combo < 500:
+                self.score += 300
             self.hp += 3
             self.combo += 1
             self.decesion = "PERFECT"
@@ -194,7 +220,8 @@ class Game():
 
         
     def run_logic(self):
-        
+        if self.hp <= 0:
+            self.index = 1
         if self.music_play == True:
             self.ticks += 1
             self.tick += 1
@@ -212,8 +239,8 @@ class Game():
                     del self.notes_0[0]
                 effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
                 self.effect_group.add(effect)
-                self.press.play(0)
-                self.score += 10    
+                
+                self.score += 300
                 self.hp += 3
                 self.combo += 1
                 self.decesion = "PERFECT"
@@ -239,8 +266,8 @@ class Game():
                     del self.notes_1[0]
                 effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
                 self.effect_group.add(effect)
-                self.press.play(0)
-                self.score += 10    
+                
+                self.score += 300  
                 self.hp += 3
                 self.combo += 1
                 self.decesion = "PERFECT"
@@ -265,8 +292,8 @@ class Game():
                     del self.notes_2[0]
                 effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
                 self.effect_group.add(effect)
-                self.press.play(0)
-                self.score += 10    
+                
+                self.score += 300    
                 self.hp += 3
                 self.combo += 1
                 self.decesion = "PERFECT"
@@ -291,8 +318,8 @@ class Game():
                     del self.notes_3[0]
                 effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
                 self.effect_group.add(effect)
-                self.press.play(0)
-                self.score += 10    
+                
+                self.score += 300    
                 self.hp += 3
                 self.combo += 1
                 self.decesion = "PERFECT"
@@ -361,116 +388,122 @@ class Game():
         screen.blit(text_obj, text_rect)
             
     def display_object(self, screen): # 오브젝트(노트 등) 그리기 함수
-        # 라인별 클릭 효과 그리기
-        if self.pressed_d: # d키 클릭 효과
-            self.effect_rect = self.effect.get_rect()
-            self.effect_rect.x = FRAME_X
-            self.effect_rect.y = FRAME_HEIGHT* 7/9 - self.effect_rect.height
-            screen.blit(self.effect, self.effect_rect)
+        if self.index == 4: # 게임 플레이 인덱스 시 표시
+            # 라인별 클릭 효과 그리기
+            if self.pressed_d: # d키 클릭 효과
+                self.effect_rect = self.effect.get_rect()
+                self.effect_rect.x = FRAME_X
+                self.effect_rect.y = FRAME_HEIGHT* 7/9 - self.effect_rect.height
+                screen.blit(self.effect, self.effect_rect)
 
-        if self.pressed_f: # f키 클릭 효과
-            self.effect_rect = self.effect.get_rect()
-            self.effect_rect.x = FRAME_X + FRAME_WIDTH/4
-            self.effect_rect.y = FRAME_HEIGHT* 7/9 - self.effect_rect.height
-            screen.blit(self.effect, self.effect_rect)
-            
-        if self.pressed_j: # j키 클릭 효과
-            self.effect_rect = self.effect.get_rect()
-            self.effect_rect.x = FRAME_X + FRAME_WIDTH/4*2
-            self.effect_rect.y = FRAME_HEIGHT* 7/9 - self.effect_rect.height
-            screen.blit(self.effect, self.effect_rect)
-            
-        if self.pressed_k: # k키 클릭 효과
-            self.effect_rect = self.effect.get_rect()
-            self.effect_rect.x = FRAME_X + FRAME_WIDTH/4*3
-            self.effect_rect.y = FRAME_HEIGHT* 7/9 - self.effect_rect.height
-            screen.blit(self.effect, self.effect_rect)
-            
-        # 라인별 노트 업데이트, 그리기
-        for note in self.notes_0:
-            note.update()
-            note.draw(screen)
-        for note in self.notes_1:
-            note.update()
-            note.draw(screen)
-        for note in self.notes_2:
-            note.update()
-            note.draw(screen)
-        for note in self.notes_3:
-            note.update()
-            note.draw(screen)
-        # HP 바 그리기
-        self.hp_length = FRAME_HEIGHT/2
-        self.hp_half = self.hp - 50
-        self.hp_color = (0, 0, 0)
-        self.blue = 0
-        self.red = 0
-        if self.hp <= 100 and self.hp >= 50: # 체력 상태에 따른 색 코드 변경하기
-            self.blue = 255
-            self.red = int(255 - 255*self.hp_half/50)
-        elif self.hp < 50 and self.hp >= 0:
-            self.blue = int(255 - 255*(1 - self.hp/50))
-            self.red = 255
-        self.hp_color = (self.red, self.blue, 0)        
-        if self.hp > 0: # 체력 바에 역동감을 주기 위한 효과 넣기
-            a = random.choice([-1, 1])
-            if self.hp == 100:
-                self.hp_visual = 100
-            elif self. hp <= 100:
-                self.hp_visual = self.hp + a
-            elif self.hp_visual <= 0:
-                self.hp_visual = 0
-        #hp바 그리기
-        pygame.draw.rect(screen, self.hp_color, # 색깔
-        [FRAME_X + FRAME_WIDTH + LINE_WIDTH, (FRAME_HEIGHT / 2 + LINE_WIDTH)+(FRAME_HEIGHT / 2)*(1 - self.hp_visual/100), # 시작 위치
-        LINE_WIDTH * 2, (FRAME_HEIGHT / 2)*(self.hp_visual/100)]) # 폭과 높이
-        #콤보 시에 표시
-        if self.combo > 0:
-            self.draw_text(screen, "COMBO", self.font, FRAME_X + FRAME_WIDTH/2, FRAME_HEIGHT*1/6, DARK_ORANGE)
-            self.draw_text(screen, "x" + str(self.combo), self.font, FRAME_X + FRAME_WIDTH/2, FRAME_HEIGHT*1/6 + 50, DARK_ORANGE)
-        #스코어보드 밑바탕
-        screen.blit(self.scoreboard, [FRAME_X, FRAME_HEIGHT * 7/9 + 40 +FRAME_WIDTH/4 - KEY_SPACE*2])
-        # 스코어
-        self.score_visual = "{0:O>11}".format(self.score)
-        self.score_visual_two = " ".join(self.score_visual)
-        self.draw_text(screen, self.score_visual_two, self.font, FRAME_X + FRAME_WIDTH/2, SCREEN_HEIGHT - 40, DARK_ORANGE)
-        # 노트 판정에 따른 인디케이터
-        if self.decesion:
-            if self.tmr >= 1 and self.tmr <= 20:
-                self.tmr += 1
-                self.draw_text_foggy(screen, self.decesion, self.font, FRAME_X + FRAME_WIDTH/2, SCREEN_HEIGHT*3/5 - self.tmr, self.deci_color, 250 - self.tmr)
-            elif self.tmr < 100:
-                self.tmr = 0
-                self.decesion = False
-        # 노트 타격 효과 그리기
-        self.effect_group.draw(screen)
-        self.draw_text(screen, "{}min : {}sec : {}tick : {}ticks".format(self.min, self.sec, self.tick, self.ticks), self.font, 450, 100, WHITE)
+            if self.pressed_f: # f키 클릭 효과
+                self.effect_rect = self.effect.get_rect()
+                self.effect_rect.x = FRAME_X + FRAME_WIDTH/4
+                self.effect_rect.y = FRAME_HEIGHT* 7/9 - self.effect_rect.height
+                screen.blit(self.effect, self.effect_rect)
+                
+            if self.pressed_j: # j키 클릭 효과
+                self.effect_rect = self.effect.get_rect()
+                self.effect_rect.x = FRAME_X + FRAME_WIDTH/4*2
+                self.effect_rect.y = FRAME_HEIGHT* 7/9 - self.effect_rect.height
+                screen.blit(self.effect, self.effect_rect)
+                
+            if self.pressed_k: # k키 클릭 효과
+                self.effect_rect = self.effect.get_rect()
+                self.effect_rect.x = FRAME_X + FRAME_WIDTH/4*3
+                self.effect_rect.y = FRAME_HEIGHT* 7/9 - self.effect_rect.height
+                screen.blit(self.effect, self.effect_rect)
+                
+            # 라인별 노트 업데이트, 그리기
+            for note in self.notes_0:
+                note.update()
+                note.draw(screen)
+            for note in self.notes_1:
+                note.update()
+                note.draw(screen)
+            for note in self.notes_2:
+                note.update()
+                note.draw(screen)
+            for note in self.notes_3:
+                note.update()
+                note.draw(screen)
+            # HP 바 그리기
+            self.hp_length = FRAME_HEIGHT/2
+            self.hp_half = self.hp - 50
+            self.hp_color = (0, 0, 0)
+            self.blue = 0
+            self.red = 0
+            if self.hp <= 100 and self.hp >= 50: # 체력 상태에 따른 색 코드 변경하기
+                self.blue = 255
+                self.red = int(255 - 255*self.hp_half/50)
+            elif self.hp < 50 and self.hp >= 0:
+                self.blue = int(255 - 255*(1 - self.hp/50))
+                self.red = 255
+            self.hp_color = (self.red, self.blue, 0)        
+            if self.hp > 0: # 체력 바에 역동감을 주기 위한 효과 넣기
+                a = random.choice([-1, 1])
+                if self.hp == 100:
+                    self.hp_visual = 100
+                elif self. hp <= 100:
+                    self.hp_visual = self.hp + a
+                elif self.hp_visual <= 0:
+                    self.hp_visual = 0
+            #hp바 그리기
+            pygame.draw.rect(screen, self.hp_color, # 색깔
+            [FRAME_X + FRAME_WIDTH + LINE_WIDTH, (FRAME_HEIGHT / 2 + LINE_WIDTH)+(FRAME_HEIGHT / 2)*(1 - self.hp_visual/100), # 시작 위치
+            LINE_WIDTH * 2, (FRAME_HEIGHT / 2)*(self.hp_visual/100)]) # 폭과 높이
+            #콤보 시에 표시
+            if self.combo > 0:
+                self.draw_text(screen, "COMBO", self.font, FRAME_X + FRAME_WIDTH/2, FRAME_HEIGHT*1/6, DARK_ORANGE)
+                self.draw_text(screen, "x" + str(self.combo), self.font, FRAME_X + FRAME_WIDTH/2, FRAME_HEIGHT*1/6 + 50, DARK_ORANGE)
+            #스코어보드 밑바탕
+            screen.blit(self.scoreboard, [FRAME_X, FRAME_HEIGHT * 7/9 + 40 +FRAME_WIDTH/4 - KEY_SPACE*2])
+            # 스코어
+            self.score_visual = "{0:O>11}".format(self.score)
+            self.score_visual_two = " ".join(self.score_visual)
+            self.draw_text(screen, self.score_visual_two, self.font, FRAME_X + FRAME_WIDTH/2, SCREEN_HEIGHT - 40, DARK_ORANGE)
+            # 노트 판정에 따른 인디케이터
+            if self.decesion:
+                if self.tmr >= 1 and self.tmr <= 20:
+                    self.tmr += 1
+                    self.draw_text_foggy(screen, self.decesion, self.font, FRAME_X + FRAME_WIDTH/2, SCREEN_HEIGHT*3/5 - self.tmr, self.deci_color, 250 - self.tmr)
+                elif self.tmr < 100:
+                    self.tmr = 0
+                    self.decesion = False
+            # 노트 타격 효과 그리기
+            self.effect_group.draw(screen)
+            self.draw_text(screen, "{}min : {}sec : {}tick : {}ticks".format(self.min, self.sec, self.tick, self.ticks), self.font, 450, 100, WHITE)
 
 
     def display_frame(self, screen, keycolor, fontcolor): #게임 프레임 그리기 - 플레이하는 부분
-        screen.fill(BLACK)
-        x = FRAME_X + KEY_SPACE
-        y = FRAME_HEIGHT * 7/9 + 25
-        keyframe_size = FRAME_WIDTH/4 - KEY_SPACE*2
-        for i in range(3): #노트 구분 선
-            pygame.draw.line(screen, GRAY, [FRAME_X + (i + 1)*(FRAME_WIDTH/4), 0], [FRAME_X + (i + 1)*(FRAME_WIDTH/4), FRAME_HEIGHT + LINE_WIDTH*2], width=1)
-        #판정선
-        pygame.draw.line(screen, OCEAN_BLUE, [FRAME_X, FRAME_HEIGHT* 7/9 + 5],[FRAME_X+FRAME_WIDTH, FRAME_HEIGHT*7/9 + 5], width=10)
-
-        #게임 프레임
-        pygame.draw.rect(screen, WHITE, [FRAME_X - LINE_WIDTH, -1 * LINE_WIDTH, FRAME_WIDTH + LINE_WIDTH*2, FRAME_HEIGHT + LINE_WIDTH*2], width=LINE_WIDTH)
-        #HP바 프레임
-        pygame.draw.rect(screen, WHITE, [(FRAME_X + FRAME_WIDTH), (FRAME_HEIGHT / 2), LINE_WIDTH*4, (FRAME_HEIGHT / 2) + LINE_WIDTH], width = LINE_WIDTH)
-        for i, key in enumerate(["D", "F", "J", "K"]): #게임 판정선 아래 키 설명
-            pygame.draw.rect(screen, keycolor, [x+FRAME_WIDTH*i/4, y, keyframe_size, keyframe_size])
-            keyset = self.font.render(key, True, fontcolor)
-            screen.blit(keyset, (x+FRAME_WIDTH*i/4+keyframe_size/2-KEY_SPACE, y+KEY_SPACE))
+        if self.index == 0: # 메인 메뉴 인덱스
+            screen.fill(WHITE)
+        elif self.index == 4: # 게임 플레이 인덱스
+            screen.fill(BLACK)
+            x = FRAME_X + KEY_SPACE
+            y = FRAME_HEIGHT * 7/9 + 25
+            keyframe_size = FRAME_WIDTH/4 - KEY_SPACE*2
+            for i in range(3): #노트 구분 선
+                pygame.draw.line(screen, GRAY, [FRAME_X + (i + 1)*(FRAME_WIDTH/4), 0], [FRAME_X + (i + 1)*(FRAME_WIDTH/4), FRAME_HEIGHT + LINE_WIDTH*2], width=1)
+            #판정선
+            pygame.draw.line(screen, OCEAN_BLUE, [FRAME_X, FRAME_HEIGHT* 7/9 + 5],[FRAME_X+FRAME_WIDTH, FRAME_HEIGHT*7/9 + 5], width=10)
+            #게임 프레임
+            pygame.draw.rect(screen, WHITE, [FRAME_X - LINE_WIDTH, -1 * LINE_WIDTH, FRAME_WIDTH + LINE_WIDTH*2, FRAME_HEIGHT + LINE_WIDTH*2], width=LINE_WIDTH)
+            #HP바 프레임
+            pygame.draw.rect(screen, WHITE, [(FRAME_X + FRAME_WIDTH), (FRAME_HEIGHT / 2), LINE_WIDTH*4, (FRAME_HEIGHT / 2) + LINE_WIDTH], width = LINE_WIDTH)
+            for i, key in enumerate(["D", "F", "J", "K"]): #게임 판정선 아래 키 설명
+                pygame.draw.rect(screen, keycolor, [x+FRAME_WIDTH*i/4, y, keyframe_size, keyframe_size])
+                keyset = self.font.render(key, True, fontcolor)
+                screen.blit(keyset, (x+FRAME_WIDTH*i/4+keyframe_size/2-KEY_SPACE, y+KEY_SPACE))
+                
     
     def process_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_c:
+                    self.index = 4
                 if event.key == pygame.K_m:
                     print(self.ticks)
                 if event.key == pygame.K_p:
@@ -557,10 +590,10 @@ class Game():
         if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 1:
             self.notes_3.append(Note_long(3, speed, long, frame))
             
-    def frame(self, frame):
+    def frame(self, frame): # 프레임 선언 함수
         self.frame_rate = frame
             
-    def pos_a(self): # 채보 함수
+    def pos_a(self): # 채보 함수 -> 메모장을 불러들인 후에 메모장에 적힌 내용을 채보로 만듦
         txt_path = resource_path('child.txt')
         with open(txt_path, 'r') as file:
             lines_final = []
@@ -592,7 +625,12 @@ class Game():
                 self.put_note_2(15, lines_final[i][1], lines_final[i][2], lines_final[i][3], self.frame_rate)
             if lines_final[i][0] == 3:
                 self.put_note_3(15, lines_final[i][1], lines_final[i][2], lines_final[i][3], self.frame_rate)
+            if lines_final[i][0] == 4 and self.ticks == lines_final[i][1]:
+                self.index = 2
 
+    def game_menu(self):
+        if self.index == 2:
+            print("Game End! Score : " + str(self.score))
         
         
         
@@ -623,6 +661,7 @@ def main():
         game.run_logic()
         game.display_frame(screen, LEAF_GREEN, WHITE)
         game.display_object(screen)
+        game.game_menu()
         pygame.display.flip()
         clock.tick_busy_loop(60)
 
