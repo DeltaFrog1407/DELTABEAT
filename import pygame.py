@@ -121,6 +121,10 @@ class Game():
         press_se = resource_path("snare.wav")
         press_effect_path = resource_path("press_effect.png")
         scoreboard_image = resource_path("scoreboard.png")
+        logo_path = resource_path("logo.png")
+        button_path = resource_path("button.png")
+        self.button_image = pygame.image.load(button_path)
+        self.logo_image = pygame.image.load(logo_path)
         self.scoreboard = pygame.image.load(scoreboard_image)
         self.effect = pygame.image.load(press_effect_path)
         self.press = pygame.mixer.Sound(press_se)
@@ -133,6 +137,8 @@ class Game():
         self.decesion = False
         self.tmr = 0
         self.effect_group = pygame.sprite.Group()
+        music_path = resource_path("Children_Record.wav")
+        pygame.mixer.music.load(music_path)
 
         self.notes_0 = [] # 라인 별 노트 저장 리스트
         self.notes_1 = []
@@ -145,14 +151,14 @@ class Game():
         self.pressed_k = False
         
         self.index = 0 # 인덱스 숫자가 바뀜에 따라 게임 화면/상태가 바뀜 0: 메인 메뉴 1: 게임 오버 메뉴 2: 결과 표시창 3: 곡 선택 메뉴 4: 게임 플레이 메뉴
-        
-        music_path = resource_path("Children_Record.wav")
-        pygame.mixer.music.load(music_path)
+
         self.music_play = False
         self.sec = 0
         self.min = 0
         self.tick = 0
         self.ticks = 0
+        
+        self.main_button = ["START", "HELP", "EXIT"]
     
         
     def note_decesion(self, note_ypos, line): # 노트 판정
@@ -477,7 +483,17 @@ class Game():
 
     def display_frame(self, screen, keycolor, fontcolor): #게임 프레임 그리기 - 플레이하는 부분
         if self.index == 0: # 메인 메뉴 인덱스
-            screen.fill(WHITE)
+            screen.fill(BLACK)# 배경화면
+            self.logo_width = self.logo_image.get_rect().width  # 로고 표시
+            self.logo_height = self.logo_image.get_rect().height
+            screen.blit(self.logo_image, [SCREEN_WIDTH/2 - self.logo_width/2, SCREEN_HEIGHT/4 - self.logo_height/2])
+            self.button_width = self.button_image.get_rect().width  # 로고 표시
+            self.button_height = self.button_image.get_rect().height
+            for i in range(len(self.main_button)): # 버튼 갯수별로 생성
+                screen.blit(self.button_image, [SCREEN_WIDTH/2 - self.button_width/2, SCREEN_HEIGHT/2 + i*130])
+                self.draw_text(screen, self.main_button[i], self.font, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + i*130 + 50, WHITE)
+
+            
         elif self.index == 4: # 게임 플레이 인덱스
             screen.fill(BLACK)
             x = FRAME_X + KEY_SPACE
