@@ -517,6 +517,8 @@ class Game():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True
+            if event.type == pygame.MOUSEMOTION: # 버튼 위에 올라갈 때 반응
+                pass # 마우스 위치 구한 뒤, 그 위치에 올라가 있으면 색반전
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_c:
                     self.index = 4
