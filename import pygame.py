@@ -119,15 +119,21 @@ class Game():
     def __init__(self):
         font_path = resource_path("big_noodle_titling.ttf")
         press_se = resource_path("snare.wav")
+        moving_se = resource_path("moving.wav")
+        selected_se = resource_path("selected.wav")
         press_effect_path = resource_path("press_effect.png")
         scoreboard_image = resource_path("scoreboard.png")
         logo_path = resource_path("logo.png")
         button_path = resource_path("button.png")
+        button_selected_path = resource_path("button_selected.png")
         self.button_image = pygame.image.load(button_path)
+        self.button_selected_image = pygame.image.load(button_selected_path)
         self.logo_image = pygame.image.load(logo_path)
         self.scoreboard = pygame.image.load(scoreboard_image)
         self.effect = pygame.image.load(press_effect_path)
         self.press = pygame.mixer.Sound(press_se)
+        self.moving = pygame.mixer.Sound(moving_se)
+        self.selected = pygame.mixer.Sound(selected_se)
         self.font = pygame.font.Font(font_path, 50)
         self.line = FRAME_HEIGHT* 7/9 + 10
         self.score = 0
@@ -158,6 +164,7 @@ class Game():
         self.tick = 0
         self.ticks = 0
         
+        self.main_select = 0
         self.main_button = ["START", "HELP", "EXIT"]
     
         
@@ -342,6 +349,13 @@ class Game():
                 self.hp -= 5
                 if self.combo > 0:
                     self.combo = 0
+            # 메인화면 버튼 선택 로직 : 선택 인덱스가 갯수 초과면 다시 돌아오게 하기
+        if self.main_select > 4:
+            self.main_select = 1
+        elif self.main_select < 0:
+            self.main_select = 3
+
+        
 
                     
     # 짧은 노트 밖에 나갈 때 로직
@@ -482,19 +496,7 @@ class Game():
 
 
     def display_frame(self, screen, keycolor, fontcolor): #게임 프레임 그리기 - 플레이하는 부분
-        if self.index == 0: # 메인 메뉴 인덱스
-            screen.fill(BLACK)# 배경화면
-            self.logo_width = self.logo_image.get_rect().width  # 로고 표시
-            self.logo_height = self.logo_image.get_rect().height
-            screen.blit(self.logo_image, [SCREEN_WIDTH/2 - self.logo_width/2, SCREEN_HEIGHT/4 - self.logo_height/2])
-            self.button_width = self.button_image.get_rect().width  # 로고 표시
-            self.button_height = self.button_image.get_rect().height
-            for i in range(len(self.main_button)): # 버튼 갯수별로 생성
-                screen.blit(self.button_image, [SCREEN_WIDTH/2 - self.button_width/2, SCREEN_HEIGHT/2 + i*130])
-                self.draw_text(screen, self.main_button[i], self.font, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + i*130 + 50, WHITE)
-
-            
-        elif self.index == 4: # 게임 플레이 인덱스
+        if self.index == 4: # 메인 메뉴 인덱스
             screen.fill(BLACK)
             x = FRAME_X + KEY_SPACE
             y = FRAME_HEIGHT * 7/9 + 25
@@ -511,73 +513,108 @@ class Game():
                 pygame.draw.rect(screen, keycolor, [x+FRAME_WIDTH*i/4, y, keyframe_size, keyframe_size])
                 keyset = self.font.render(key, True, fontcolor)
                 screen.blit(keyset, (x+FRAME_WIDTH*i/4+keyframe_size/2-KEY_SPACE, y+KEY_SPACE))
-                
+            
+        elif self.index == 0: # 게임 플레이 인덱스
+            screen.fill(BLACK)# 배경화면
+            self.logo_width = self.logo_image.get_rect().width  # 로고 표시
+            self.logo_height = self.logo_image.get_rect().height
+            screen.blit(self.logo_image, [SCREEN_WIDTH/2 - self.logo_width/2, SCREEN_HEIGHT/4 - self.logo_height/2])
+            self.button_width = self.button_image.get_rect().width  # 로고 표시
+            self.button_height = self.button_image.get_rect().height
+            for i in range(len(self.main_button)): # 버튼 갯수별로 생성
+                if i == self.main_select - 1: # 버튼을 선택했을 때 선택되었다고 표시
+                    screen.blit(self.button_selected_image, [SCREEN_WIDTH/2 - self.button_width/2, SCREEN_HEIGHT/2 + i*130])
+                    self.draw_text(screen, self.main_button[i], self.font, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + i*130 + 50, BLACK)
+                else:
+                    screen.blit(self.button_image, [SCREEN_WIDTH/2 - self.button_width/2, SCREEN_HEIGHT/2 + i*130])
+                    self.draw_text(screen, self.main_button[i], self.font, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + i*130 + 50, WHITE)
+            
+        elif self.index == 2:
+            screen.fill(BLACK)
+            self.logo_width = self.logo_image.get_rect().width  # 로고 표시
+            self.logo_height = self.logo_image.get_rect().height
+            screen.blit(self.logo_image, [SCREEN_WIDTH/2 - self.logo_width/2, SCREEN_HEIGHT/4 - self.logo_height/2])
+            self.button_width = self.button_image.get_rect().width  # 로고 표시
+            self.button_height = self.button_image.get_rect().height
+            self.draw_text(screen, "GAME SET!", self.font, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 1*130 + 50, DARK_ORANGE)
+            self.draw_text(screen, "YOUR SCORE", self.font, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 2*130 + 50, DARK_ORANGE)
+            self.draw_text(screen, str(self.score), self.font, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 3*130 + 50, WHITE)
+    
     
     def process_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True
-            if event.type == pygame.MOUSEMOTION: # 버튼 위에 올라갈 때 반응
-                pass # 마우스 위치 구한 뒤, 그 위치에 올라가 있으면 색반전
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_c:
-                    self.index = 4
                 if event.key == pygame.K_m:
                     print(self.ticks)
-                if event.key == pygame.K_p:
-                    self.music_play = True
-                    pygame.mixer.music.play(-1)
-                if event.key == pygame.K_d: # d 키를 누름
-                    self.press.play(0)
-                    self.pressed_d = True
-                    for note in self.notes_0:
-                        if note.type == 0:
-                            if abs(self.line - note.decesion) <= 200 and note.lane == 0: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
-                                self.note_decesion(note.decesion, self.line)
-                                del self.notes_0[0]
-                            if abs(self.line - note.decesion) < 120 and note.lane == 0: # 이펙트 개체 생성 - FAIL만 아닐 시
-                                effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
-                                self.effect_group.add(effect)
-                    
+                if self.index == 4:
+                    if event.key == pygame.K_d: # d 키를 누름
+                        self.press.play(0)
+                        self.pressed_d = True
+                        for note in self.notes_0:
+                            if note.type == 0:
+                                if abs(self.line - note.decesion) <= 200 and note.lane == 0: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
+                                    self.note_decesion(note.decesion, self.line)
+                                    del self.notes_0[0]
+                                if abs(self.line - note.decesion) < 120 and note.lane == 0: # 이펙트 개체 생성 - FAIL만 아닐 시
+                                    effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
+                                    self.effect_group.add(effect)
+                        
+                    if event.key == pygame.K_f: # f 키를 누름
+                        self.press.play(0)
+                        self.pressed_f = True
+                        for note in self.notes_1:
+                            if note.type == 0:
+                                if abs(self.line - note.decesion) <= 200 and note.lane == 1: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
+                                    self.note_decesion(note.decesion, self.line)
+                                    del self.notes_1[0]
+                                if abs(self.line - note.decesion) < 120 and note.lane == 1: # 이펙트 개체 생성 - FAIL만 아닐 시
+                                    effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
+                                    self.effect_group.add(effect)
 
-                if event.key == pygame.K_f: # f 키를 누름
-                    self.press.play(0)
-                    self.pressed_f = True
-                    for note in self.notes_1:
-                        if note.type == 0:
-                            if abs(self.line - note.decesion) <= 200 and note.lane == 1: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
-                                self.note_decesion(note.decesion, self.line)
-                                del self.notes_1[0]
-                            if abs(self.line - note.decesion) < 120 and note.lane == 1: # 이펙트 개체 생성 - FAIL만 아닐 시
-                                effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
-                                self.effect_group.add(effect)
+                    if event.key == pygame.K_j: # j 키를 누름
+                        self.press.play(0)
+                        self.pressed_j = True
+                        for note in self.notes_2:
+                            if note.type == 0:
+                                if abs(self.line - note.decesion) <= 200 and note.lane == 2: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
+                                    self.note_decesion(note.rect.y, self.line)
+                                    del self.notes_2[0]
+                                if abs(self.line - note.decesion) < 120 and note.lane == 2: # 이펙트 개체 생성 - FAIL만 아닐 시
+                                    effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
+                                    self.effect_group.add(effect)
 
-
-                if event.key == pygame.K_j: # j 키를 누름
-                    self.press.play(0)
-                    self.pressed_j = True
-                    for note in self.notes_2:
-                        if note.type == 0:
-                            if abs(self.line - note.decesion) <= 200 and note.lane == 2: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
-                                self.note_decesion(note.rect.y, self.line)
-                                del self.notes_2[0]
-                            if abs(self.line - note.decesion) < 120 and note.lane == 2: # 이펙트 개체 생성 - FAIL만 아닐 시
-                                effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
-                                self.effect_group.add(effect)
-
-                if event.key == pygame.K_k: # k 키를 누름
-                    self.press.play(0)
-                    self.pressed_k = True
-                    for note in self.notes_3:
-                        if note.type == 0:
-                            if abs(self.line - note.decesion) <= 200 and note.lane == 3: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
-                                self.note_decesion(note.rect.y, self.line)
-                                del self.notes_3[0]
-                            if abs(self.line - note.decesion) < 120 and note.lane == 3: # 이펙트 개체 생성 - FAIL만 아닐 시
-                                effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
-                                self.effect_group.add(effect)
+                    if event.key == pygame.K_k: # k 키를 누름
+                        self.press.play(0)
+                        self.pressed_k = True
+                        for note in self.notes_3:
+                            if note.type == 0:
+                                if abs(self.line - note.decesion) <= 200 and note.lane == 3: # 노트가 판정 범위 안에 들어왔는지 확인 후 삭제
+                                    self.note_decesion(note.rect.y, self.line)
+                                    del self.notes_3[0]
+                                if abs(self.line - note.decesion) < 120 and note.lane == 3: # 이펙트 개체 생성 - FAIL만 아닐 시
+                                    effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
+                                    self.effect_group.add(effect)
     
-                                         
+                if event.key == pygame.K_ESCAPE:
+                    self.index = 0
+                if self.index == 0:
+                    if event.key == pygame.K_UP: # 위 키를 누름
+                        self.main_select -= 1 # 메뉴 인덱스 감소
+                        self.moving.play(0)
+                    if event.key == pygame.K_DOWN: # 아래 키를 누름
+                        self.main_select += 1 # 메뉴 인덱스 증가
+                        self.moving.play(0)
+                    if event.key == pygame.K_RETURN:
+                        if self.main_select >= 1 and self.main_select <= 3:
+                            self.selected.play(0)
+                        if self.main_select == 1:
+                            self.index = 4
+                            self.music_play = True
+                            pygame.mixer.music.play(-1)
+                        elif self.main_select == 3:
+                            return True                             
             if event.type == pygame.KEYUP: # 키를 뗌
                 if event.key == pygame.K_d:
                     self.pressed_d = False
@@ -645,15 +682,7 @@ class Game():
                 self.put_note_3(15, lines_final[i][1], lines_final[i][2], lines_final[i][3], self.frame_rate)
             if lines_final[i][0] == 4 and self.ticks == lines_final[i][1]:
                 self.index = 2
-
-    def game_menu(self):
-        if self.index == 2:
-            print("Game End! Score : " + str(self.score))
-        
-        
-        
-        
-            
+                        
 
 def resource_path(relative_path): # 리소스 경로 함수
     try:
@@ -679,11 +708,9 @@ def main():
         game.run_logic()
         game.display_frame(screen, LEAF_GREEN, WHITE)
         game.display_object(screen)
-        game.game_menu()
         pygame.display.flip()
         clock.tick_busy_loop(60)
-
-
+        
     pygame.quit()
 
 if __name__ == '__main__':
