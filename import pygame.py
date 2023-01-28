@@ -117,15 +117,31 @@ class Effect(pygame.sprite.Sprite):
         
 class Game():
     def __init__(self):
+        # 리소스들 불러오기
         font_path = resource_path("big_noodle_titling.ttf")
         press_se = resource_path("snare.wav")
         moving_se = resource_path("moving.wav")
         selected_se = resource_path("selected.wav")
+        ui_sound = resource_path("ui_put.wav")
         press_effect_path = resource_path("press_effect.png")
         scoreboard_image = resource_path("scoreboard.png")
         logo_path = resource_path("logo.png")
         button_path = resource_path("button.png")
         button_selected_path = resource_path("button_selected.png")
+        main_background = resource_path("main_background.png")
+        rank_frame = resource_path("rank_frame.png")
+        rank_sound = resource_path("rank_congratulate.wav")
+        rank_image_path = [resource_path("rank_s.png"), resource_path("rank_a.png"), resource_path("rank_b.png"), resource_path("rank_c.png"),
+                           resource_path("rank_d.png"), resource_path("rank_f.png")]
+        self.rank_image = []
+        k = 0
+        for i in rank_image_path:
+            self.rank_image.append(pygame.image.load(i))
+            k += 1
+        self.rank_decesion = 0
+        self.rank_sound = pygame.mixer.Sound(rank_sound)
+        self.main_background = pygame.image.load(main_background)
+        self.rank_frame = pygame.image.load(rank_frame)
         self.button_image = pygame.image.load(button_path)
         self.button_selected_image = pygame.image.load(button_selected_path)
         self.logo_image = pygame.image.load(logo_path)
@@ -134,7 +150,15 @@ class Game():
         self.press = pygame.mixer.Sound(press_se)
         self.moving = pygame.mixer.Sound(moving_se)
         self.selected = pygame.mixer.Sound(selected_se)
+        self.ui_se = pygame.mixer.Sound(ui_sound)
         self.font = pygame.font.Font(font_path, 50)
+        self.font_80 = pygame.font.Font(font_path, 80)
+        self.font_100 = pygame.font.Font(font_path, 100)
+        self.font_150 = pygame.font.Font(font_path, 150)
+        self.music_path = resource_path("Children_Record.wav")
+        pygame.mixer.music.load(self.music_path)
+        
+        # 필요 변수들 불러오기
         self.line = FRAME_HEIGHT* 7/9 + 10
         self.score = 0
         self.hp = 100
@@ -142,9 +166,15 @@ class Game():
         self.damage = 5
         self.decesion = False
         self.tmr = 0
+        self.tmr_result = 0
         self.effect_group = pygame.sprite.Group()
-        music_path = resource_path("Children_Record.wav")
-        pygame.mixer.music.load(music_path)
+        self.best_score = 19000
+        self.best_scoring = False
+        self.perfect_count = 0
+        self.great_count = 0
+        self.normal_count = 0
+        self.fail_count = 0
+        self.score_load = 0
 
         self.notes_0 = [] # 라인 별 노트 저장 리스트
         self.notes_1 = []
@@ -158,12 +188,14 @@ class Game():
         
         self.index = 0 # 인덱스 숫자가 바뀜에 따라 게임 화면/상태가 바뀜 0: 메인 메뉴 1: 게임 오버 메뉴 2: 결과 표시창 3: 곡 선택 메뉴 4: 게임 플레이 메뉴
 
+        # 음악 플레이 관련 변수들
         self.music_play = False
         self.sec = 0
         self.min = 0
         self.tick = 0
         self.ticks = 0
         
+        # 메인 버튼 리스트
         self.main_select = 0
         self.main_button = ["START", "HELP", "EXIT"]
     
@@ -179,6 +211,7 @@ class Game():
             self.deci_color = RED
             self.tmr = 0
             self.tmr += 1
+            self.fail_count += 1
 
         elif self.gap < 120 and self.gap >= 80: # normal
             self.score += 100
@@ -196,6 +229,7 @@ class Game():
             self.deci_color = YELLOW
             self.tmr = 0
             self.tmr += 1
+            self.normal_count += 1
             
         elif self.gap < 80 and self.gap >= 40: # great
             self.score += 200
@@ -213,6 +247,7 @@ class Game():
             self.deci_color = LEAF_GREEN
             self.tmr = 0
             self.tmr += 1
+            self.great_count += 1
 
         elif self.gap < 40 and self.gap >= 0 : # perfect
             self.score += 300
@@ -230,6 +265,7 @@ class Game():
             self.deci_color = SKY_BLUE
             self.tmr = 0
             self.tmr += 1
+            self.perfect_count += 1
 
         
     def run_logic(self):
@@ -260,6 +296,7 @@ class Game():
                 self.deci_color = SKY_BLUE
                 self.tmr = 0
                 self.tmr += 1 
+                self.perfect_count += 1
 
         # 노트가 밖에 나갈 때 삭제
             if note.out_of_screen():
@@ -269,6 +306,7 @@ class Game():
                 self.tmr = 0
                 self.tmr += 1
                 self.hp -= 5
+                self.fail_count += 1
                 if self.combo > 0:
                     self.combo = 0
         #롱노트 F
@@ -287,6 +325,7 @@ class Game():
                 self.deci_color = SKY_BLUE
                 self.tmr = 0
                 self.tmr += 1
+                self.perfect_count += 1
         # 노트가 밖에 나갈 때 삭제
             if note.out_of_screen():
                 del self.notes_1[0]
@@ -295,8 +334,9 @@ class Game():
                 self.tmr = 0
                 self.tmr += 1
                 self.hp -= 5
+                self.fail_count += 1
                 if self.combo > 0:
-                    self.combo = 0
+                    self.combo = 0                
         #롱노트 J
         for note in self.notes_2:
             if self.pressed_j == True and note.type == 1 and abs(self.notes_2[0].decesion - FRAME_HEIGHT*7/9 + 5) < 40:
@@ -305,7 +345,6 @@ class Game():
                     del self.notes_2[0]
                 effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
                 self.effect_group.add(effect)
-                
                 self.score += 300    
                 self.hp += 3
                 self.combo += 1
@@ -313,6 +352,7 @@ class Game():
                 self.deci_color = SKY_BLUE
                 self.tmr = 0
                 self.tmr += 1
+                self.perfect_count += 1
         # 노트가 밖에 나갈 때 삭제
             if note.out_of_screen():
                 del self.notes_2[0]
@@ -321,8 +361,9 @@ class Game():
                 self.tmr = 0
                 self.tmr += 1
                 self.hp -= 5
+                self.fail_count += 1
                 if self.combo > 0:
-                    self.combo = 0               
+                    self.combo = 0                    
         #롱노트 K
         for note in self.notes_3:
             if self.pressed_k == True and note.type == 1 and abs(self.notes_3[0].decesion - FRAME_HEIGHT*7/9 + 5) < 40:
@@ -331,7 +372,6 @@ class Game():
                     del self.notes_3[0]
                 effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
                 self.effect_group.add(effect)
-                
                 self.score += 300    
                 self.hp += 3
                 self.combo += 1
@@ -339,6 +379,7 @@ class Game():
                 self.deci_color = SKY_BLUE
                 self.tmr = 0
                 self.tmr += 1
+                self.perfect_count += 1
         # 노트가 밖에 나갈 때 삭제
             if note.out_of_screen():
                 del self.notes_3[0]
@@ -347,6 +388,7 @@ class Game():
                 self.tmr = 0
                 self.tmr += 1
                 self.hp -= 5
+                self.fail_count += 1
                 if self.combo > 0:
                     self.combo = 0
             # 메인화면 버튼 선택 로직 : 선택 인덱스가 갯수 초과면 다시 돌아오게 하기
@@ -355,9 +397,6 @@ class Game():
         elif self.main_select < 0:
             self.main_select = 3
 
-        
-
-                    
     # 짧은 노트 밖에 나갈 때 로직
         for note in self.notes_1:
             if note.out_of_screen():
@@ -369,6 +408,7 @@ class Game():
                 self.deci_color = RED
                 self.tmr = 0
                 self.tmr += 1
+                self.fail_count += 1
         for note in self.notes_2:
             if note.out_of_screen():
                 del self.notes_2[0]
@@ -379,6 +419,7 @@ class Game():
                 self.deci_color = RED
                 self.tmr = 0
                 self.tmr += 1
+                self.fail_count += 1
         for note in self.notes_3:
             if note.out_of_screen():
                 del self.notes_3[0]
@@ -389,10 +430,25 @@ class Game():
                 self.deci_color = RED
                 self.tmr = 0
                 self.tmr += 1
+                self.fail_count += 1
         if self.hp > 100:
             self.hp = 100
         # 이펙트 업데이트
         self.effect_group.update()
+        
+        # 결과 인덱스
+        if self.index == 2:
+            note_all = self.perfect_count + self.great_count + self.normal_count + self.fail_count
+            if note_all
+            if self.tmr_result == 200 or self.tmr_result == 220 or self.tmr_result == 240 or self.tmr_result == 260 or self.tmr_result == 300: ## 스코어 소리 출력
+                self.ui_se.play(0)
+            if self.tmr_result == 400 and self.score > self.best_score:
+                self.ui_se.play(0)
+                self.best_scoring = True
+            if self.tmr_result == 500:
+                self.ui_se.play(0)
+            if self.tmr_result == 900:
+                self.reset()
 
     def draw_text(self, screen, text, font, x, y, main_color): # 텍스트 입력용 함수
         text_obj = font.render(text, True, main_color)
@@ -493,6 +549,36 @@ class Game():
             # 노트 타격 효과 그리기
             self.effect_group.draw(screen)
             self.draw_text(screen, "{}min : {}sec : {}tick : {}ticks".format(self.min, self.sec, self.tick, self.ticks), self.font, 450, 100, WHITE)
+        decesions = ["PERFECT", "GREAT", "NORMAL", "FAIL"]
+        decesions_color = [SKY_BLUE, LEAF_GREEN, YELLOW, RED]
+        if self.index == 2:
+            if self.tmr_result >= 0:
+                pygame.mixer.music.stop()
+                self.draw_text(screen, "RESULT", self.font_150, 200, 100, WHITE)
+                self.draw_text(screen, "SCORE", self.font_100, 300, 700, WHITE)
+                self.draw_text(screen, "HIGH SCORE  :  " + str(self.best_score), self.font_100, 1100, 100, DARK_ORANGE)
+
+                for i in range(len(decesions)):
+                    self.draw_text(screen, decesions[i], self.font_80, 300, 240 + i*100, decesions_color[i])
+                self.tmr_result += 1
+            if self.tmr_result >= 200:
+                self.draw_text(screen, str(self.perfect_count), self.font_80, 550, 240, WHITE)
+            if self.tmr_result >= 220:
+                self.draw_text(screen, str(self.great_count), self.font_80, 550, 240 + 100, WHITE)
+            if self.tmr_result >= 240:
+                self.draw_text(screen, str(self.normal_count), self.font_80, 550, 240 + 2*100, WHITE)
+            if self.tmr_result >= 260:
+                self.draw_text(screen, str(self.fail_count), self.font_80, 550, 240 + 3*100, WHITE)
+            if self.tmr_result >= 300 and self.tmr_result<=400:
+                self.score_load += 1
+                self.draw_text(screen, str(int(self.score*self.score_load/100)), self.font_80, 550, 700, WHITE)
+            if self.tmr_result > 400:
+                self.draw_text(screen, str(self.score), self.font_80, 550, 700, WHITE)
+            if self.tmr_result > 500:
+                screen.blit(self.rank_image[0], [800, 150])
+                
+            if self.best_scoring == True:
+                self.draw_text(screen, "BEST SCORE!", self.font_100, 450, 800, DARK_ORANGE)
 
 
     def display_frame(self, screen, keycolor, fontcolor): #게임 프레임 그리기 - 플레이하는 부분
@@ -530,18 +616,12 @@ class Game():
                     self.draw_text(screen, self.main_button[i], self.font, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + i*130 + 50, WHITE)
             
         elif self.index == 2:
-            screen.fill(BLACK)
-            self.logo_width = self.logo_image.get_rect().width  # 로고 표시
-            self.logo_height = self.logo_image.get_rect().height
-            screen.blit(self.logo_image, [SCREEN_WIDTH/2 - self.logo_width/2, SCREEN_HEIGHT/4 - self.logo_height/2])
-            self.button_width = self.button_image.get_rect().width  # 로고 표시
-            self.button_height = self.button_image.get_rect().height
-            self.draw_text(screen, "GAME SET!", self.font, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 1*130 + 50, DARK_ORANGE)
-            self.draw_text(screen, "YOUR SCORE", self.font, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 2*130 + 50, DARK_ORANGE)
-            self.draw_text(screen, str(self.score), self.font, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 3*130 + 50, WHITE)
+            screen.fill(BLACK)# 배경화면
+            screen.blit(self.rank_frame, [800, 150])
+            self.draw_text(screen, "Press ESC to go to lobby", self.font, 1100, 800, WHITE)
     
     
-    def process_events(self):
+    def process_event(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True
@@ -598,7 +678,7 @@ class Game():
                                     self.effect_group.add(effect)
     
                 if event.key == pygame.K_ESCAPE:
-                    self.index = 0
+                    self.index = 2
                 if self.index == 0:
                     if event.key == pygame.K_UP: # 위 키를 누름
                         self.main_select -= 1 # 메뉴 인덱스 감소
@@ -624,6 +704,7 @@ class Game():
                     self.pressed_j = False
                 if event.key == pygame.K_k:
                     self.pressed_k = False
+                    
     def put_note_0(self, speed, time, code, long, frame):               # 노트 배치 함수
         if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 0:
             self.notes_0.append(Note(0, speed, frame))
@@ -682,6 +763,31 @@ class Game():
                 self.put_note_3(15, lines_final[i][1], lines_final[i][2], lines_final[i][3], self.frame_rate)
             if lines_final[i][0] == 4 and self.ticks == lines_final[i][1]:
                 self.index = 2
+    
+    def reset(self):
+        # 기초 변수들 초기화
+        self.score_load = 0
+        self.hp = 100
+        self.combo = 0
+        self.tmr_result = 0
+        self.best_scoring = False
+        self.music_play = False
+        self.fail_count = 0
+        self.normal_count = 0
+        self.great_count = 0
+        self.perfect_count = 0
+        self.score = 0
+        self.ticks = 0
+        self.tick = 0
+        self.sec = 0
+        self.min = 0
+        self.notes_0 = [] # 라인 별 노트 저장 리스트
+        self.notes_1 = []
+        self.notes_2 = []
+        self.notes_3 = []
+        
+        # 인덱스 변경
+        self.index = 0
                         
 
 def resource_path(relative_path): # 리소스 경로 함수
@@ -703,7 +809,7 @@ def main():
     while not done:
         fr = clock.get_fps()
         game.frame(fr)
-        done = game.process_events()
+        done = game.process_event()
         game.pos_a()
         game.run_logic()
         game.display_frame(screen, LEAF_GREEN, WHITE)
