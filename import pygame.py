@@ -118,6 +118,7 @@ class Effect(pygame.sprite.Sprite):
 class Game():
     def __init__(self):
         # 리소스들 불러오기
+        cr_jacket = resource_path("cr_jacket.png")
         font_path = resource_path("big_noodle_titling.ttf")
         press_se = resource_path("snare.wav")
         moving_se = resource_path("moving.wav")
@@ -139,6 +140,7 @@ class Game():
             self.rank_image.append(pygame.image.load(i))
             k += 1
         self.rank_decesion = 0
+        self.cr_jacket = pygame.image.load(cr_jacket)
         self.rank_sound = pygame.mixer.Sound(rank_sound)
         self.main_background = pygame.image.load(main_background)
         self.rank_frame = pygame.image.load(rank_frame)
@@ -155,8 +157,9 @@ class Game():
         self.font_80 = pygame.font.Font(font_path, 80)
         self.font_100 = pygame.font.Font(font_path, 100)
         self.font_150 = pygame.font.Font(font_path, 150)
-        self.music_path = resource_path("Children_Record.wav")
-        pygame.mixer.music.load(self.music_path)
+        
+        #곡들 추가
+        self.music_path = [resource_path("Children_Record.wav"), resource_path("main.mp3")]
         
         # 필요 변수들 불러오기
         self.line = FRAME_HEIGHT* 7/9 + 10
@@ -175,6 +178,8 @@ class Game():
         self.normal_count = 0
         self.fail_count = 0
         self.score_load = 0
+        self.rank_load = 0
+        self.music_index = 0
 
         self.notes_0 = [] # 라인 별 노트 저장 리스트
         self.notes_1 = []
@@ -270,7 +275,7 @@ class Game():
         
     def run_logic(self):
         if self.hp <= 0:
-            self.index = 1
+            self.index = 2
         if self.music_play == True:
             self.ticks += 1
             self.tick += 1
@@ -317,7 +322,6 @@ class Game():
                     del self.notes_1[0]
                 effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
                 self.effect_group.add(effect)
-                
                 self.score += 300  
                 self.hp += 3
                 self.combo += 1
@@ -327,7 +331,7 @@ class Game():
                 self.tmr += 1
                 self.perfect_count += 1
         # 노트가 밖에 나갈 때 삭제
-            if note.out_of_screen():
+            if note.out_of_screen():                
                 del self.notes_1[0]
                 self.decesion = "FAIL"
                 self.deci_color = RED
@@ -391,55 +395,40 @@ class Game():
                 self.fail_count += 1
                 if self.combo > 0:
                     self.combo = 0
-            # 메인화면 버튼 선택 로직 : 선택 인덱스가 갯수 초과면 다시 돌아오게 하기
-        if self.main_select > 4:
+            
+        if self.main_select > 4: # 메인화면 버튼 선택 로직 : 선택 인덱스가 갯수 초과면 다시 돌아오게 하기
             self.main_select = 1
         elif self.main_select < 0:
             self.main_select = 3
-
-    # 짧은 노트 밖에 나갈 때 로직
-        for note in self.notes_1:
-            if note.out_of_screen():
-                del self.notes_1[0]
-                self.hp -= 5
-                if self.combo > 0:
-                    self.combo = 0
-                self.decesion = "FAIL"
-                self.deci_color = RED
-                self.tmr = 0
-                self.tmr += 1
-                self.fail_count += 1
-        for note in self.notes_2:
-            if note.out_of_screen():
-                del self.notes_2[0]
-                self.hp -= 5
-                if self.combo > 0:
-                    self.combo = 0
-                self.decesion = "FAIL"
-                self.deci_color = RED
-                self.tmr = 0
-                self.tmr += 1
-                self.fail_count += 1
-        for note in self.notes_3:
-            if note.out_of_screen():
-                del self.notes_3[0]
-                self.hp -= 5
-                if self.combo > 0:
-                    self.combo = 0
-                self.decesion = "FAIL"
-                self.deci_color = RED
-                self.tmr = 0
-                self.tmr += 1
-                self.fail_count += 1
+            
         if self.hp > 100:
             self.hp = 100
         # 이펙트 업데이트
         self.effect_group.update()
         
+        # 곡 선택 인덱스
+        if self.index == 3:
+            pygame.mixer.music.load(self.music_path[self.music_index])
         # 결과 인덱스
         if self.index == 2:
             note_all = self.perfect_count + self.great_count + self.normal_count + self.fail_count
-            if note_all
+            self.rank_load = 0
+            try:
+                note_rate = int(self.perfect_count/note_all*100)
+            except:
+                note_rate = 1
+            if note_rate >= 95: # S랭크 결정
+                self.rank_load = 0
+            elif note_rate >= 80 and note_rate < 95: # A랭크 결정
+                self.rank_load = 1
+            elif note_rate >= 60 and note_rate < 80: # B랭크 결정
+                self.rank_load = 2
+            elif note_rate >= 40 and note_rate < 60: # C랭크 결정
+                self.rank_load = 3
+            elif note_rate >= 40 and note_rate < 60: # D랭크 결정
+                self.rank_load = 4
+            else:
+                self.rank_load = 5
             if self.tmr_result == 200 or self.tmr_result == 220 or self.tmr_result == 240 or self.tmr_result == 260 or self.tmr_result == 300: ## 스코어 소리 출력
                 self.ui_se.play(0)
             if self.tmr_result == 400 and self.score > self.best_score:
@@ -575,14 +564,14 @@ class Game():
             if self.tmr_result > 400:
                 self.draw_text(screen, str(self.score), self.font_80, 550, 700, WHITE)
             if self.tmr_result > 500:
-                screen.blit(self.rank_image[0], [800, 150])
+                screen.blit(self.rank_image[self.rank_load], [800, 150])
                 
             if self.best_scoring == True:
                 self.draw_text(screen, "BEST SCORE!", self.font_100, 450, 800, DARK_ORANGE)
 
 
     def display_frame(self, screen, keycolor, fontcolor): #게임 프레임 그리기 - 플레이하는 부분
-        if self.index == 4: # 메인 메뉴 인덱스
+        if self.index == 4: # 게임 플레이 인덱스
             screen.fill(BLACK)
             x = FRAME_X + KEY_SPACE
             y = FRAME_HEIGHT * 7/9 + 25
@@ -600,7 +589,7 @@ class Game():
                 keyset = self.font.render(key, True, fontcolor)
                 screen.blit(keyset, (x+FRAME_WIDTH*i/4+keyframe_size/2-KEY_SPACE, y+KEY_SPACE))
             
-        elif self.index == 0: # 게임 플레이 인덱스
+        elif self.index == 0: # 메인 메뉴 인덱스
             screen.fill(BLACK)# 배경화면
             self.logo_width = self.logo_image.get_rect().width  # 로고 표시
             self.logo_height = self.logo_image.get_rect().height
@@ -615,11 +604,14 @@ class Game():
                     screen.blit(self.button_image, [SCREEN_WIDTH/2 - self.button_width/2, SCREEN_HEIGHT/2 + i*130])
                     self.draw_text(screen, self.main_button[i], self.font, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + i*130 + 50, WHITE)
             
-        elif self.index == 2:
+        elif self.index == 2: # 결과창 인덱스
             screen.fill(BLACK)# 배경화면
             screen.blit(self.rank_frame, [800, 150])
             self.draw_text(screen, "Press ESC to go to lobby", self.font, 1100, 800, WHITE)
-    
+            
+        elif self.index == 3: # 곡 선택 인덱스
+            screen.fill(BLACK)# 배경화면
+            screen.blit(self.rank_frame, [490, 120])
     
     def process_event(self):
         for event in pygame.event.get():
@@ -676,9 +668,15 @@ class Game():
                                 if abs(self.line - note.decesion) < 120 and note.lane == 3: # 이펙트 개체 생성 - FAIL만 아닐 시
                                     effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
                                     self.effect_group.add(effect)
-    
-                if event.key == pygame.K_ESCAPE:
+                
+                if event.key == pygame.K_0:
+                    self.index = 4                    
+                    self.music_play = True # 이거 곡선택에 쓰기 인덱스 3에서
+                    pygame.mixer.music.play(-1)
+                if event.key == pygame.K_2:
                     self.index = 2
+                if event.key == pygame.K_3:
+                    self.index = 3
                 if self.index == 0:
                     if event.key == pygame.K_UP: # 위 키를 누름
                         self.main_select -= 1 # 메뉴 인덱스 감소
@@ -690,9 +688,7 @@ class Game():
                         if self.main_select >= 1 and self.main_select <= 3:
                             self.selected.play(0)
                         if self.main_select == 1:
-                            self.index = 4
-                            self.music_play = True
-                            pygame.mixer.music.play(-1)
+                            self.index = 3
                         elif self.main_select == 3:
                             return True                             
             if event.type == pygame.KEYUP: # 키를 뗌
