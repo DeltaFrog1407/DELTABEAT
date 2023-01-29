@@ -172,6 +172,7 @@ class Game():
         self.font_150 = pygame.font.Font(font_path, 150)
     
         # 필요 변수들 불러오기
+        self.version = "0.1"
         self.line = FRAME_HEIGHT* 7/9 + 10
         self.score = 0
         self.hp = 100
@@ -699,6 +700,8 @@ class Game():
             
         elif self.index == 0: # 메인 메뉴 인덱스
             screen.blit(self.main_background, [0, 0])# 배경화면
+            self.draw_text(screen, "Version. "+ self.version, self.font_30, SCREEN_WIDTH - 100, SCREEN_HEIGHT - 50, WHITE)
+            self.draw_text(screen, "Made by DELTAFROG", self.font_30, SCREEN_WIDTH - 100, SCREEN_HEIGHT - 25, WHITE)
             self.logo_width = self.logo_image.get_rect().width  # 로고 표시
             self.logo_height = self.logo_image.get_rect().height
             screen.blit(self.logo_image, [SCREEN_WIDTH/2 - self.logo_width/2, SCREEN_HEIGHT/4 - self.logo_height/2])
