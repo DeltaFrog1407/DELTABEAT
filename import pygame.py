@@ -17,8 +17,13 @@ SKY_BLUE = (0, 255, 230)
 OCEAN_BLUE = (51, 102, 255)
 LEAF_GREEN = (51, 255, 51)
 DARK_ORANGE = (255, 162, 0)
-RED = (255, 0, 0)
-YELLOW = (255, 255, 0)
+RED = (255, 0, 18)
+YELLOW = (204, 255, 0)
+GOLD = (255, 215, 0)
+GREEN = (0, 255, 18)
+BLUE = (0, 108, 255)
+YELLOW_RANK = ()
+VIOLET = (205, 0, 255)
 
 FRAME_X = 700
 FRAME_WIDTH = 400
@@ -31,7 +36,7 @@ KEY_SPACE = 10
 class Note(): # 노트 클래스
     def __init__(self, lane, speed, frame):
         self.lane = lane
-        note_images_list = [resource_path("note1.png"), resource_path("note2.png")]
+        note_images_list = [resource_path("assets/note1.png"), resource_path("assets/note2.png")]
         image_selected = random.choice(note_images_list)
         self.image = pygame.image.load(image_selected)
         self.rect = self.image.get_rect()
@@ -58,7 +63,7 @@ class Note_long(): # 노트 클래스
     def __init__(self, lane, speed, long_num, frame):
         self.lane = lane
         self.length = long_num
-        note_images_path = resource_path("note_long.png")
+        note_images_path = resource_path("assets/note_long.png")
         self.image = pygame.image.load(note_images_path)
         self.image = pygame.transform.scale(self.image, (100, 20*self.length))
         self.rect = self.image.get_rect()
@@ -93,7 +98,7 @@ class Effect(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.images = []
         for num in range(1, 32):
-            img_path = resource_path("effect/blue_{}.png".format(num))
+            img_path = resource_path("assets/effect/blue_{}.png".format(num))
             img = pygame.image.load(img_path)
             self.images.append(img)
         self.index = 0
@@ -118,49 +123,54 @@ class Effect(pygame.sprite.Sprite):
 class Game():
     def __init__(self):
         # 리소스들 불러오기
-        cr_jacket = resource_path("cr_jacket.png")
-        font_path = resource_path("big_noodle_titling.ttf")
-        press_se = resource_path("snare.wav")
-        moving_se = resource_path("moving.wav")
-        selected_se = resource_path("selected.wav")
-        ui_sound = resource_path("ui_put.wav")
-        press_effect_path = resource_path("press_effect.png")
-        scoreboard_image = resource_path("scoreboard.png")
-        logo_path = resource_path("logo.png")
-        button_path = resource_path("button.png")
-        button_selected_path = resource_path("button_selected.png")
-        main_background = resource_path("main_background.png")
-        rank_frame = resource_path("rank_frame.png")
-        rank_sound = resource_path("rank_congratulate.wav")
-        rank_image_path = [resource_path("rank_s.png"), resource_path("rank_a.png"), resource_path("rank_b.png"), resource_path("rank_c.png"),
-                           resource_path("rank_d.png"), resource_path("rank_f.png")]
+        no_image_path = resource_path("assets/no_image.png")
+        font_path = resource_path("assets/big_noodle_titling.ttf")
+        press_se = resource_path("assets/snare.wav")
+        moving_se = resource_path("assets/moving.wav")
+        selected_se = resource_path("assets/selected.wav")
+        ui_sound = resource_path("assets/ui_put.wav")
+        press_effect_path = resource_path("assets/press_effect.png")
+        scoreboard_image = resource_path("assets/scoreboard.png")
+        logo_path = resource_path("assets/logo.png")
+        button_path = resource_path("assets/button.png")
+        button_selected_path = resource_path("assets/button_selected.png")
+        main_background = resource_path("assets/main_background.png")
+        main_background_dark = resource_path("assets/main_background_dark.png")
+        main_background_1 = resource_path("assets/main.png")
+        main_background_1_dark = resource_path("assets/main_dark.png")
+        rank_frame = resource_path("assets/rank_frame.png")
+        rank_sound = resource_path("assets/rank_congratulate.wav")
+        rank_image_path = [resource_path("assets/rank_s.png"), resource_path("assets/rank_a.png"), resource_path("assets/rank_b.png"), resource_path("assets/rank_c.png"),
+                           resource_path("assets/rank_d.png"), resource_path("assets/rank_f.png")]
+        self.main_music = resource_path("assets/main.mp3")
         self.rank_image = []
-        k = 0
         for i in rank_image_path:
             self.rank_image.append(pygame.image.load(i))
-            k += 1
         self.rank_decesion = 0
-        self.cr_jacket = pygame.image.load(cr_jacket)
+        pygame.mixer.music.load(self.main_music)
+        pygame.mixer.music.play(-1)
         self.rank_sound = pygame.mixer.Sound(rank_sound)
         self.main_background = pygame.image.load(main_background)
+        self.main_background_1 = pygame.image.load(main_background_1)
+        self.main_background_dark = pygame.image.load(main_background_dark)
+        self.main_background_1_dark = pygame.image.load(main_background_1_dark)
         self.rank_frame = pygame.image.load(rank_frame)
         self.button_image = pygame.image.load(button_path)
         self.button_selected_image = pygame.image.load(button_selected_path)
         self.logo_image = pygame.image.load(logo_path)
+        self.no_image = pygame.image.load(no_image_path)
         self.scoreboard = pygame.image.load(scoreboard_image)
         self.effect = pygame.image.load(press_effect_path)
         self.press = pygame.mixer.Sound(press_se)
         self.moving = pygame.mixer.Sound(moving_se)
         self.selected = pygame.mixer.Sound(selected_se)
         self.ui_se = pygame.mixer.Sound(ui_sound)
+        self.font_30 = pygame.font.Font(font_path, 30)
         self.font = pygame.font.Font(font_path, 50)
         self.font_80 = pygame.font.Font(font_path, 80)
         self.font_100 = pygame.font.Font(font_path, 100)
         self.font_150 = pygame.font.Font(font_path, 150)
-        
-        #곡들 추가
-        self.music_path = [resource_path("Children_Record.wav"), resource_path("main.mp3")]
-        
+    
         # 필요 변수들 불러오기
         self.line = FRAME_HEIGHT* 7/9 + 10
         self.score = 0
@@ -171,15 +181,18 @@ class Game():
         self.tmr = 0
         self.tmr_result = 0
         self.effect_group = pygame.sprite.Group()
-        self.best_score = 19000
-        self.best_scoring = False
         self.perfect_count = 0
         self.great_count = 0
         self.normal_count = 0
         self.fail_count = 0
         self.score_load = 0
         self.rank_load = 0
-        self.music_index = 0
+        self.music_index = 1
+        self.music_select = False
+        self.goto_menu = False
+        self.escape = False
+        self.rank_text = ["S", "A", "B", "C", "D", "F"]
+        self.rank_color = [GOLD, GREEN, BLUE, YELLOW, VIOLET, RED]
 
         self.notes_0 = [] # 라인 별 노트 저장 리스트
         self.notes_1 = []
@@ -191,7 +204,7 @@ class Game():
         self.pressed_j = False
         self.pressed_k = False
         
-        self.index = 0 # 인덱스 숫자가 바뀜에 따라 게임 화면/상태가 바뀜 0: 메인 메뉴 1: 게임 오버 메뉴 2: 결과 표시창 3: 곡 선택 메뉴 4: 게임 플레이 메뉴
+        self.index = 0 # 인덱스 숫자가 바뀜에 따라 게임 화면/상태가 바뀜 0: 메인 메뉴 2: 결과 표시창 3: 곡 선택 메뉴 4: 게임 플레이 메뉴
 
         # 음악 플레이 관련 변수들
         self.music_play = False
@@ -203,7 +216,54 @@ class Game():
         # 메인 버튼 리스트
         self.main_select = 0
         self.main_button = ["START", "HELP", "EXIT"]
-    
+        
+        #곡들 추가
+        self.music_path = []
+        self.jacket_path = []
+        self.jacket_list = []
+        self.music_title = []
+        self.music_info = []
+        self.music_difficulty = []
+        self.chebo_list = []
+        self.best_score_list = []
+        self.best_score = []
+        self.best_rank_list = []
+        self.best_rank = []
+        self.best_scoring = False
+              ############         메모장을 불러들여서 곡 정보와 난이도 등을 불러옴
+        txt_path = resource_path("assets/music_infos.txt")
+        with open(txt_path, 'r') as file:
+            for line in file:
+                record = line.split()
+                self.music_title.append(record[0])
+                self.music_info.append(record[1])
+                self.music_difficulty.append(record[2])
+                self.music_path.append(resource_path("assets/" + record[3]))
+                self.jacket_path.append(resource_path("assets/" + record[4]))
+                self.chebo_list.append(resource_path("assets/" + record[5]))
+        for i in self.jacket_path:
+            try:
+                self.jacket_list.append(pygame.image.load(i))
+            except:
+                self.jacket_list.append(pygame.image.load(no_image_path))
+        txt_path = resource_path("assets/best_scores.txt")
+        with open(txt_path, 'r') as file:
+            for line in file:
+                record = line.split()
+                self.best_score_list.append(record[0])
+                self.best_rank_list.append(record[1])
+        for i in self.best_score_list:
+            try:
+                k = int(i)
+                self.best_score.append(k)
+            except:
+                self.best_score.append(i)
+        for i in self.best_rank_list:
+            try:
+                k = int(i)
+                self.best_rank.append(k)
+            except:
+                self.best_rank.append(i)
         
     def note_decesion(self, note_ypos, line): # 노트 판정
         self.gap = abs(note_ypos - line) # 노트와 판정선의 차잇값의 절댓값
@@ -273,18 +333,9 @@ class Game():
             self.perfect_count += 1
 
         
-    def run_logic(self):
+    def run_logic(self): 
         if self.hp <= 0:
             self.index = 2
-        if self.music_play == True:
-            self.ticks += 1
-            self.tick += 1
-            if self.tick == 60:
-                self.sec += 1
-                self.tick = 0
-            if self.sec == 60:
-                self.sec = 0
-                self.min += 1
         # 롱노트 D
         for note in self.notes_0:
             if self.pressed_d == True and note.type == 1 and abs(self.notes_0[0].decesion - FRAME_HEIGHT*7/9 + 5) < 40:
@@ -408,7 +459,21 @@ class Game():
         
         # 곡 선택 인덱스
         if self.index == 3:
-            pygame.mixer.music.load(self.music_path[self.music_index])
+            if self.music_index == 0:
+                self.music_index = len(self.music_path) - 1
+            elif self.music_index >= len(self.music_path):
+                self.music_index = 1
+
+        if self.music_play == True: # 곡 생성 후 시간 계산
+            self.ticks += 1
+            self.tick += 1
+            if self.tick == 60:
+                self.sec += 1
+                self.tick = 0
+            if self.sec == 60:
+                self.sec = 0
+                self.min += 1
+                
         # 결과 인덱스
         if self.index == 2:
             note_all = self.perfect_count + self.great_count + self.normal_count + self.fail_count
@@ -429,15 +494,34 @@ class Game():
                 self.rank_load = 4
             else:
                 self.rank_load = 5
+            
+            if self.escape == True and self.rank_load <= 2: # 중도포기 시에 C랭크 이하고 받음
+                self.rank_load = 3
+                print(2)
+            if self.rank_load <= self.best_rank[self.music_index]:
+                self.best_rank[self.music_index] = self.rank_load
             if self.tmr_result == 200 or self.tmr_result == 220 or self.tmr_result == 240 or self.tmr_result == 260 or self.tmr_result == 300: ## 스코어 소리 출력
                 self.ui_se.play(0)
-            if self.tmr_result == 400 and self.score > self.best_score:
+            if self.tmr_result == 400 and self.score > self.best_score[self.music_index]:
                 self.ui_se.play(0)
                 self.best_scoring = True
+                self.best_score[self.music_index] = self.score   # 최고기록 텍스트에 쑤셔넣기
+                file = open("best_scores.txt", 'w')
+                for i, k in zip(self.best_score, self.best_rank):
+                    if type(i) == str:
+                        file.write(str(i) + " ")
+                    else:
+                        file.write(str(i) + " ")
+                    if type(k) == str:
+                        file.write(str(k) + "\n")
+                    else:
+                        file.write(str(k) + "\n")
+                file.close()
             if self.tmr_result == 500:
                 self.ui_se.play(0)
-            if self.tmr_result == 900:
+            if self.tmr_result >= 550 and self.goto_menu == True:
                 self.reset()
+                self.goto_menu = False
 
     def draw_text(self, screen, text, font, x, y, main_color): # 텍스트 입력용 함수
         text_obj = font.render(text, True, main_color)
@@ -540,12 +624,12 @@ class Game():
             self.draw_text(screen, "{}min : {}sec : {}tick : {}ticks".format(self.min, self.sec, self.tick, self.ticks), self.font, 450, 100, WHITE)
         decesions = ["PERFECT", "GREAT", "NORMAL", "FAIL"]
         decesions_color = [SKY_BLUE, LEAF_GREEN, YELLOW, RED]
-        if self.index == 2:
+        if self.index == 2: # 결과창 인덱스
             if self.tmr_result >= 0:
                 pygame.mixer.music.stop()
                 self.draw_text(screen, "RESULT", self.font_150, 200, 100, WHITE)
                 self.draw_text(screen, "SCORE", self.font_100, 300, 700, WHITE)
-                self.draw_text(screen, "HIGH SCORE  :  " + str(self.best_score), self.font_100, 1100, 100, DARK_ORANGE)
+                self.draw_text(screen, "HIGH SCORE  :  " + str(self.best_score[self.music_index]), self.font_100, 1100, 100, DARK_ORANGE)
 
                 for i in range(len(decesions)):
                     self.draw_text(screen, decesions[i], self.font_80, 300, 240 + i*100, decesions_color[i])
@@ -565,14 +649,38 @@ class Game():
                 self.draw_text(screen, str(self.score), self.font_80, 550, 700, WHITE)
             if self.tmr_result > 500:
                 screen.blit(self.rank_image[self.rank_load], [800, 150])
-                
+                self.draw_text(screen, "Press ESC to go to lobby", self.font, 1100, 800, WHITE)
             if self.best_scoring == True:
                 self.draw_text(screen, "BEST SCORE!", self.font_100, 450, 800, DARK_ORANGE)
 
-
+        if self.index == 3: # 곡 선택 인덱스
+            for i in range(-1, 2):
+                try:
+                    screen.blit(self.jacket_list[self.music_index + i], [555 + i*800, 185])
+                except: # 이미지 없을 시
+                    screen.blit(self.no_image, [555 + i*800, 185])
+            self.draw_text(screen, "HIGH SCORE", self.font_30, 800, 115, DARK_ORANGE)
+            try:  # 최고기록
+                self.draw_text(screen, self.rank_text[self.best_rank[self.music_index]] + "  " + str(self.best_score[self.music_index]), self.font, 800, 150, self.rank_color[self.best_rank[self.music_index]])
+            except:
+                self.draw_text(screen, "None", self.font, 800, 150, DARK_ORANGE)
+            try: # 타이틀
+                self.draw_text(screen, self.music_title[self.music_index].replace('_', ' '), self.font, 800, 750, WHITE)
+            except:
+                self.draw_text(screen, "No title", self.font, 800, 750, WHITE)
+            try: # 정보
+                self.draw_text(screen, "ARTIST : " + self.music_info[self.music_index], self.font_30, 800, 800, WHITE)
+            except: 
+                self.draw_text(screen, "No info", self.font_30, 800, 800, WHITE)
+            try: # 난이도
+                self.draw_text(screen, "Difficulty : " + self.music_difficulty[self.music_index] + "/ 10", self.font_30, 800, 830, WHITE)
+            except:
+                self.draw_text(screen, "No difficulty", self.font_30, 800, 830, WHITE)
+            
+            
     def display_frame(self, screen, keycolor, fontcolor): #게임 프레임 그리기 - 플레이하는 부분
         if self.index == 4: # 게임 플레이 인덱스
-            screen.fill(BLACK)
+            screen.blit(self.main_background_dark, [0, 0])
             x = FRAME_X + KEY_SPACE
             y = FRAME_HEIGHT * 7/9 + 25
             keyframe_size = FRAME_WIDTH/4 - KEY_SPACE*2
@@ -590,7 +698,7 @@ class Game():
                 screen.blit(keyset, (x+FRAME_WIDTH*i/4+keyframe_size/2-KEY_SPACE, y+KEY_SPACE))
             
         elif self.index == 0: # 메인 메뉴 인덱스
-            screen.fill(BLACK)# 배경화면
+            screen.blit(self.main_background, [0, 0])# 배경화면
             self.logo_width = self.logo_image.get_rect().width  # 로고 표시
             self.logo_height = self.logo_image.get_rect().height
             screen.blit(self.logo_image, [SCREEN_WIDTH/2 - self.logo_width/2, SCREEN_HEIGHT/4 - self.logo_height/2])
@@ -605,13 +713,15 @@ class Game():
                     self.draw_text(screen, self.main_button[i], self.font, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + i*130 + 50, WHITE)
             
         elif self.index == 2: # 결과창 인덱스
-            screen.fill(BLACK)# 배경화면
-            screen.blit(self.rank_frame, [800, 150])
-            self.draw_text(screen, "Press ESC to go to lobby", self.font, 1100, 800, WHITE)
+            screen.blit(self.main_background_dark, [0, 0])# 배경화면
+            screen.blit(self.rank_frame, [855, 205])
             
         elif self.index == 3: # 곡 선택 인덱스
-            screen.fill(BLACK)# 배경화면
-            screen.blit(self.rank_frame, [490, 120])
+            screen.blit(self.main_background, [0, 0])# 배경화면
+            screen.blit(self.rank_frame, [545, 175])
+            screen.blit(self.rank_frame, [1345, 175])
+            screen.blit(self.rank_frame, [-255, 175])
+            self.draw_text(screen, "PRESS SPACE TO START", self.font_30, 800, 50, WHITE)
     
     def process_event(self):
         for event in pygame.event.get():
@@ -620,7 +730,7 @@ class Game():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_m:
                     print(self.ticks)
-                if self.index == 4:
+                if self.index == 4: # 게임 플레이 시
                     if event.key == pygame.K_d: # d 키를 누름
                         self.press.play(0)
                         self.pressed_d = True
@@ -668,16 +778,11 @@ class Game():
                                 if abs(self.line - note.decesion) < 120 and note.lane == 3: # 이펙트 개체 생성 - FAIL만 아닐 시
                                     effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
                                     self.effect_group.add(effect)
-                
-                if event.key == pygame.K_0:
-                    self.index = 4                    
-                    self.music_play = True # 이거 곡선택에 쓰기 인덱스 3에서
-                    pygame.mixer.music.play(-1)
-                if event.key == pygame.K_2:
-                    self.index = 2
-                if event.key == pygame.K_3:
-                    self.index = 3
-                if self.index == 0:
+                    if event.key == pygame.K_ESCAPE: # esc 키 누르면 결과창으로
+                        self.escape = True
+                        self.index = 2
+                    
+                if self.index == 0:  # 메인 메뉴에서
                     if event.key == pygame.K_UP: # 위 키를 누름
                         self.main_select -= 1 # 메뉴 인덱스 감소
                         self.moving.play(0)
@@ -690,7 +795,25 @@ class Game():
                         if self.main_select == 1:
                             self.index = 3
                         elif self.main_select == 3:
-                            return True                             
+                            return True
+                
+                elif self.index == 3:  # 곡 선택 메뉴에서
+                    if event.key == pygame.K_RIGHT:
+                        self.music_index += 1
+                    if event.key == pygame.K_LEFT:
+                        self.music_index -= 1
+                    if event.key == pygame.K_SPACE:
+                        pygame.mixer.music.load(self.music_path[self.music_index])
+                        self.music_play = True
+                        pygame.mixer.music.play(-1)
+                        self.index = 4
+                    if event.key == pygame.K_ESCAPE:
+                        self.index = 0
+                
+                elif self.index == 2: # 결과창 메뉴에서
+                    if event.key == pygame.K_ESCAPE:
+                        self.goto_menu = True
+                        
             if event.type == pygame.KEYUP: # 키를 뗌
                 if event.key == pygame.K_d:
                     self.pressed_d = False
@@ -700,6 +823,8 @@ class Game():
                     self.pressed_j = False
                 if event.key == pygame.K_k:
                     self.pressed_k = False
+                if event.key == pygame.K_ESCAPE:
+                    self.goto_menu = False
                     
     def put_note_0(self, speed, time, code, long, frame):               # 노트 배치 함수
         if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 0:
@@ -726,7 +851,10 @@ class Game():
         self.frame_rate = frame
             
     def pos_a(self): # 채보 함수 -> 메모장을 불러들인 후에 메모장에 적힌 내용을 채보로 만듦
-        txt_path = resource_path('child.txt')
+        try:
+            txt_path = self.chebo_list[self.music_index]
+        except:
+            txt_path = resource_path("assets/chebo_path.txt")
         with open(txt_path, 'r') as file:
             lines_final = []
             lines = []
@@ -781,9 +909,11 @@ class Game():
         self.notes_1 = []
         self.notes_2 = []
         self.notes_3 = []
-        
+        self.escape = False
+        pygame.mixer.music.load(self.main_music)
+        pygame.mixer.music.play(-1)
         # 인덱스 변경
-        self.index = 0
+        self.index = 3
                         
 
 def resource_path(relative_path): # 리소스 경로 함수

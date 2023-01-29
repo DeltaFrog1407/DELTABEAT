@@ -1,0 +1,3 @@
+Title Artist Difficulty music_path jacket_path chebo_path.txt
+Children_record Jin 5 Children_Record.wav cr_jacket.png child.txt
+Best_Time FASSounds 3 best_time.mp3 best_time_jacket.png best_time.txt
