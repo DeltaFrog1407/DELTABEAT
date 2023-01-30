@@ -1,8 +1,6 @@
 import pygame
 import sys
-import math
 import random
-import time
 import os
 
 SCREEN_HEIGHT = 900
@@ -36,7 +34,7 @@ KEY_SPACE = 10
 class Note(): # 노트 클래스
     def __init__(self, lane, speed, frame):
         self.lane = lane
-        note_images_list = [resource_path("assets/pics/note1.png"), resource_path("assets/pics/note2.png")]
+        note_images_list = ["assets/pics/note1.png", "assets/pics/note2.png"]
         image_selected = random.choice(note_images_list)
         self.image = pygame.image.load(image_selected)
         self.rect = self.image.get_rect()
@@ -63,7 +61,7 @@ class Note_long(): # 노트 클래스
     def __init__(self, lane, speed, long_num, frame):
         self.lane = lane
         self.length = long_num
-        note_images_path = resource_path("assets/pics/note_long.png")
+        note_images_path = "assets/pics/note_long.png"
         self.image = pygame.image.load(note_images_path)
         self.image = pygame.transform.scale(self.image, (100, 20*self.length))
         self.rect = self.image.get_rect()
@@ -98,7 +96,7 @@ class Effect(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.images = []
         for num in range(1, 32):
-            img_path = resource_path("assets/effect/blue_{}.png".format(num))
+            img_path = "assets/effect/blue_{}.png".format(num)
             img = pygame.image.load(img_path)
             self.images.append(img)
         self.index = 0
@@ -123,25 +121,25 @@ class Effect(pygame.sprite.Sprite):
 class Game():
     def __init__(self):
         # 리소스들 불러오기
-        no_image_path = resource_path("assets/jackets/no_image.png")
-        font_path = resource_path("assets/fonts/big_noodle_titling.ttf")
-        press_se = resource_path("assets/sound_effects/snare.wav")
-        moving_se = resource_path("assets/sound_effects/moving.wav")
-        selected_se = resource_path("assets/sound_effects/selected.wav")
-        ui_sound = resource_path("assets/sound_effects/ui_put.wav")
-        press_effect_path = resource_path("assets/effect/press_effect.png")
-        scoreboard_image = resource_path("assets/pics/scoreboard.png")
-        logo_path = resource_path("assets/pics/logo.png")
-        button_path = resource_path("assets/pics/button.png")
-        button_selected_path = resource_path("assets/pics/button_selected.png")
-        main_background = resource_path("assets/backgrounds/main_background.png")
-        main_background_dark = resource_path("assets/backgrounds/main_background_dark.png")
-        main_background_1 = resource_path("assets/backgrounds/main.png")
-        main_background_1_dark = resource_path("assets/backgrounds/main_dark.png")
-        rank_frame = resource_path("assets/pics/rank_frame.png")
-        rank_image_path = [resource_path("assets/pics/rank_s.png"), resource_path("assets/pics/rank_a.png"), resource_path("assets/pics/rank_b.png"), 
-                           resource_path("assets/pics/rank_c.png"), resource_path("assets/pics/rank_d.png"), resource_path("assets/pics/rank_f.png")]
-        self.main_music = resource_path("assets/musics/main.mp3")
+        no_image_path = "assets/jackets/no_image.png"
+        font_path = "assets/fonts/big_noodle_titling.ttf"
+        press_se = "assets/sound_effects/snare.wav"
+        moving_se = "assets/sound_effects/moving.wav"
+        selected_se = "assets/sound_effects/selected.wav"
+        ui_sound = "assets/sound_effects/ui_put.wav"
+        press_effect_path = "assets/effect/press_effect.png"
+        scoreboard_image = "assets/pics/scoreboard.png"
+        logo_path = "assets/pics/logo.png"
+        button_path = "assets/pics/button.png"
+        button_selected_path = "assets/pics/button_selected.png"
+        main_background = "assets/backgrounds/main_background.png"
+        main_background_dark = "assets/backgrounds/main_background_dark.png"
+        main_background_1 = "assets/backgrounds/main.png"
+        main_background_1_dark = "assets/backgrounds/main_dark.png"
+        rank_frame = "assets/pics/rank_frame.png"
+        rank_image_path = ["assets/pics/rank_s.png", "assets/pics/rank_a.png", "assets/pics/rank_b.png", 
+                           "assets/pics/rank_c.png", "assets/pics/rank_d.png", "assets/pics/rank_f.png"]
+        self.main_music = "assets/musics/main.mp3"
         self.rank_image = []
         for i in rank_image_path:
             self.rank_image.append(pygame.image.load(i))
@@ -230,22 +228,22 @@ class Game():
         self.best_rank = []
         self.best_scoring = False
               ############         메모장을 불러들여서 곡 정보와 난이도 등을 불러옴
-        txt_path = resource_path("assets/logs/music_infos.txt")
+        txt_path = "assets/logs/music_infos.txt"
         with open(txt_path, 'r') as file:
             for line in file:
                 record = line.split()
                 self.music_title.append(record[0])
                 self.music_info.append(record[1])
                 self.music_difficulty.append(record[2])
-                self.music_path.append(resource_path("assets/musics/" + record[3]))
-                self.jacket_path.append(resource_path("assets/jackets/" + record[4]))
-                self.chebo_list.append(resource_path("assets/logs/" + record[5]))
+                self.music_path.append("assets/musics/" + record[3])
+                self.jacket_path.append("assets/jackets/" + record[4])
+                self.chebo_list.append("assets/logs/" + record[5])
         for i in self.jacket_path:
             try:
                 self.jacket_list.append(pygame.image.load(i))
             except:
                 self.jacket_list.append(pygame.image.load(no_image_path))
-        txt_path = resource_path("assets/logs/best_scores.txt")
+        txt_path = "assets/logs/best_scores.txt"
         with open(txt_path, 'r') as file:
             for line in file:
                 record = line.split()
@@ -855,7 +853,7 @@ class Game():
         try:
             txt_path = self.chebo_list[self.music_index]
         except:
-            txt_path = resource_path("assets/logs/chebo_path.txt")
+            txt_path = "assets/logs/chebo_path.txt"
         with open(txt_path, 'r') as file:
             lines_final = []
             lines = []
