@@ -496,7 +496,6 @@ class Game():
             
             if self.escape == True and self.rank_load <= 2: # 중도포기 시에 C랭크 이하고 받음
                 self.rank_load = 3
-                print(2)
             if self.rank_load <= self.best_rank[self.music_index]:
                 self.best_rank[self.music_index] = self.rank_load
             if self.tmr_result == 200 or self.tmr_result == 220 or self.tmr_result == 240 or self.tmr_result == 260 or self.tmr_result == 300: ## 스코어 소리 출력
@@ -505,7 +504,8 @@ class Game():
                 self.ui_se.play(0)
                 self.best_scoring = True
                 self.best_score[self.music_index] = self.score   # 최고기록 텍스트에 쑤셔넣기
-                file = open("best_scores.txt", 'w')
+                print(self.best_rank[self.music_index])
+                file = open("assets/logs/best_scores.txt", 'w')
                 for i, k in zip(self.best_score, self.best_rank):
                     if type(i) == str:
                         file.write(str(i) + " ")
