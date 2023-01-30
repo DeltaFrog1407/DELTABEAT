@@ -121,6 +121,7 @@ class Effect(pygame.sprite.Sprite):
 class Game():
     def __init__(self):
         # 리소스들 불러오기
+        help_path = "assets/backgrounds/help.png"
         no_image_path = "assets/jackets/no_image.png"
         font_path = "assets/fonts/big_noodle_titling.ttf"
         press_se = "assets/sound_effects/snare.wav"
@@ -146,6 +147,7 @@ class Game():
         self.rank_decesion = 0
         pygame.mixer.music.load(self.main_music)
         pygame.mixer.music.play(-1)
+        self.main_help = pygame.image.load(help_path)
         self.main_background = pygame.image.load(main_background)
         self.main_background_1 = pygame.image.load(main_background_1)
         self.main_background_dark = pygame.image.load(main_background_dark)
@@ -188,6 +190,7 @@ class Game():
         self.music_select = False
         self.goto_menu = False
         self.escape = False
+        self.help_on = False
         self.rank_text = ["S", "A", "B", "C", "D", "F"]
         self.rank_color = [GOLD, GREEN, BLUE, YELLOW, VIOLET, RED]
 
@@ -519,7 +522,7 @@ class Game():
             if self.tmr_result >= 550 and self.goto_menu == True:
                 self.reset()
                 self.goto_menu = False
-
+            
     def draw_text(self, screen, text, font, x, y, main_color): # 텍스트 입력용 함수
         text_obj = font.render(text, True, main_color)
         text_rect = text_obj.get_rect()
@@ -621,6 +624,7 @@ class Game():
             self.draw_text(screen, "{}min : {}sec : {}tick : {}ticks".format(self.min, self.sec, self.tick, self.ticks), self.font, 450, 100, WHITE)
         decesions = ["PERFECT", "GREAT", "NORMAL", "FAIL"]
         decesions_color = [SKY_BLUE, LEAF_GREEN, YELLOW, RED]
+        
         if self.index == 2: # 결과창 인덱스
             if self.tmr_result >= 0:
                 pygame.mixer.music.stop()
@@ -674,7 +678,11 @@ class Game():
             except:
                 self.draw_text(screen, "No difficulty", self.font_30, 800, 830, WHITE)
             
-            
+        if self.index == 0:
+            if self.help_on == True:
+                screen.blit(self.main_help, [0, 0])
+        
+        
     def display_frame(self, screen, keycolor, fontcolor): #게임 프레임 그리기 - 플레이하는 부분
         if self.index == 4: # 게임 플레이 인덱스
             screen.blit(self.main_background_dark, [0, 0])
@@ -795,6 +803,10 @@ class Game():
                             self.index = 3
                         elif self.main_select == 3:
                             return True
+                        elif self.main_select == 2:
+                            self.help_on = True
+                    if event.key == pygame.K_ESCAPE:
+                        self.help_on = False
                 
                 elif self.index == 3:  # 곡 선택 메뉴에서
                     if event.key == pygame.K_RIGHT:
