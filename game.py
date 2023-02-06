@@ -2,6 +2,7 @@ import pygame
 import sys
 import random
 import os
+import time
 
 SCREEN_HEIGHT = 900
 SCREEN_WIDTH = 1600
@@ -32,7 +33,7 @@ KEY_SPACE = 10
 
 
 class Note(): # 노트 클래스
-    def __init__(self, lane, speed, frame):
+    def __init__(self, lane, Time):
         self.lane = lane
         note_images_list = ["assets/pics/note1.png", "assets/pics/note2.png"]
         image_selected = random.choice(note_images_list)
@@ -40,16 +41,15 @@ class Note(): # 노트 클래스
         self.rect = self.image.get_rect()
         self.rect.x = FRAME_X + FRAME_WIDTH/4*self.lane
         self.rect.y = -20
-        self.speed = speed
         self.type = 0
         self.decesion = self.rect.y + 20
-        self.frame = frame
+        self.Time_pre = Time + 2
+        self.code = 0
 
     def draw(self, screen): # 노트 그리기
         screen.blit(self.image, self.rect)
 
-    def update(self): # 노트 떨어트리기(스피드)
-        self.rect.y += (self.speed*self.frame/60)
+    def update(self): # 노트 판정기준 업데이트
         self.decesion = self.rect.y + 20
 
     def out_of_screen(self): # 노트가 화면 밖에 나갈 때 삭제
@@ -58,32 +58,30 @@ class Note(): # 노트 클래스
         return False
     
 class Note_long(): # 노트 클래스
-    def __init__(self, lane, speed, long_num, frame):
+    def __init__(self, lane, Time, long):
+        self.length_first = long
         self.lane = lane
-        self.length = long_num
+        self.length = long
         note_images_path = "assets/pics/note_long.png"
         self.image = pygame.image.load(note_images_path)
-        self.image = pygame.transform.scale(self.image, (100, 20*self.length))
+        self.image = pygame.transform.scale(self.image, (100, 20*(self.length)))
         self.rect = self.image.get_rect()
         self.rect.x = FRAME_X + FRAME_WIDTH/4*self.lane
-        self.rect.y = -20*long_num
         self.decesion = self.rect.y + 20*self.length
-        self.speed = speed
+        self.Time_pre = Time + 2
         self.type = 1
-        self.decesion_code = 1
-        self.frame = frame
+        self.code = 1
 
     def boom(self):
         self.length -= 1
         if self.length < 0:
             self.length = 0
-        self.image = pygame.transform.scale(self.image, (100, (20*(self.length+self.decesion_code))))
+        self.image = pygame.transform.scale(self.image, (100, (20*(self.length))))
         
     def draw(self, screen): # 노트 그리기
         screen.blit(self.image, self.rect)
 
     def update(self): # 노트 떨어트리기(스피드)
-        self.rect.y += (self.speed*self.frame/60)
         self.decesion = self.rect.y + 20*self.length
 
     def out_of_screen(self): # 노트가 화면 밖에 나갈 때 삭제
@@ -169,6 +167,8 @@ class Game():
         self.font_100 = pygame.font.Font(font_path, 100)
         self.font_150 = pygame.font.Font(font_path, 150)
     
+    
+        self.gst = time.time()
         # 필요 변수들 불러오기
         self.version = "0.1"
         self.line = FRAME_HEIGHT* 7/9 + 10
@@ -193,6 +193,9 @@ class Game():
         self.help_on = False
         self.rank_text = ["S", "A", "B", "C", "D", "F"]
         self.rank_color = [GOLD, GREEN, BLUE, YELLOW, VIOLET, RED]
+        self.toggle = 0
+        self.speed = 3
+        self.starting = False
 
         self.notes_0 = [] # 라인 별 노트 저장 리스트
         self.notes_1 = []
@@ -208,10 +211,6 @@ class Game():
 
         # 음악 플레이 관련 변수들
         self.music_play = False
-        self.sec = 0
-        self.min = 0
-        self.tick = 0
-        self.ticks = 0
         
         # 메인 버튼 리스트
         self.main_select = 0
@@ -333,11 +332,18 @@ class Game():
             self.perfect_count += 1
 
         
-    def run_logic(self): 
+    def run_logic(self, Time): 
+        self.Time = time.time() - self.gst # 시간 계산
+        if self.starting == True:
+            self.start(Time)
         if self.hp <= 0:
             self.index = 2
         # 롱노트 D
         for note in self.notes_0:
+            if note.code == 0:
+                note.rect.y = FRAME_HEIGHT* 7/9 + 5 + 20 + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
+            elif note.code == 1:
+                note.rect.y = FRAME_HEIGHT* 7/9 + 5  - note.length_first*20  + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
             if self.pressed_d == True and note.type == 1 and abs(self.notes_0[0].decesion - FRAME_HEIGHT*7/9 + 5) < 40:
                 note.boom()
                 if note.length == 0:
@@ -367,6 +373,10 @@ class Game():
                     self.combo = 0
         #롱노트 F
         for note in self.notes_1:
+            if note.code == 0:
+                note.rect.y = FRAME_HEIGHT* 7/9 + 5 + 20 + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
+            elif note.code == 1:
+                note.rect.y = FRAME_HEIGHT* 7/9 + 5  - note.length_first*20  + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
             if self.pressed_f == True and note.type == 1 and abs(self.notes_1[0].decesion - FRAME_HEIGHT*7/9 + 5) < 40:
                 note.boom()
                 if note.length == 0:
@@ -394,6 +404,10 @@ class Game():
                     self.combo = 0                
         #롱노트 J
         for note in self.notes_2:
+            if note.code == 0:
+                note.rect.y = FRAME_HEIGHT* 7/9 + 5 + 20 + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
+            elif note.code == 1:
+                note.rect.y = FRAME_HEIGHT* 7/9 + 5  - note.length_first*20  + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
             if self.pressed_j == True and note.type == 1 and abs(self.notes_2[0].decesion - FRAME_HEIGHT*7/9 + 5) < 40:
                 note.boom()
                 if note.length == 0:
@@ -421,6 +435,10 @@ class Game():
                     self.combo = 0                    
         #롱노트 K
         for note in self.notes_3:
+            if note.code == 0:
+                note.rect.y = FRAME_HEIGHT* 7/9 + 5 + 20 + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
+            elif note.code == 1:
+                note.rect.y = FRAME_HEIGHT* 7/9 + 5  - note.length_first*20  + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
             if self.pressed_k == True and note.type == 1 and abs(self.notes_3[0].decesion - FRAME_HEIGHT*7/9 + 5) < 40:
                 note.boom()
                 if note.length == 0:
@@ -464,15 +482,6 @@ class Game():
             elif self.music_index >= len(self.music_path):
                 self.music_index = 1
 
-        if self.music_play == True: # 곡 생성 후 시간 계산
-            self.ticks += 1
-            self.tick += 1
-            if self.tick == 60:
-                self.sec += 1
-                self.tick = 0
-            if self.sec == 60:
-                self.sec = 0
-                self.min += 1
                 
         # 결과 인덱스
         if self.index == 2:
@@ -621,7 +630,6 @@ class Game():
                     self.decesion = False
             # 노트 타격 효과 그리기
             self.effect_group.draw(screen)
-            self.draw_text(screen, "{}min : {}sec : {}tick : {}ticks".format(self.min, self.sec, self.tick, self.ticks), self.font, 450, 100, WHITE)
         decesions = ["PERFECT", "GREAT", "NORMAL", "FAIL"]
         decesions_color = [SKY_BLUE, LEAF_GREEN, YELLOW, RED]
         
@@ -735,11 +743,11 @@ class Game():
             if event.type == pygame.QUIT:
                 return True
             if event.type == pygame.KEYDOWN:
+                print(self.Time)
                 if event.key == pygame.K_m:
-                    print(self.ticks)
+                    pass
                 if self.index == 4: # 게임 플레이 시
                     if event.key == pygame.K_d: # d 키를 누름
-                        self.press.play(0)
                         self.pressed_d = True
                         for note in self.notes_0:
                             if note.type == 0:
@@ -751,7 +759,6 @@ class Game():
                                     self.effect_group.add(effect)
                         
                     if event.key == pygame.K_f: # f 키를 누름
-                        self.press.play(0)
                         self.pressed_f = True
                         for note in self.notes_1:
                             if note.type == 0:
@@ -763,7 +770,6 @@ class Game():
                                     self.effect_group.add(effect)
 
                     if event.key == pygame.K_j: # j 키를 누름
-                        self.press.play(0)
                         self.pressed_j = True
                         for note in self.notes_2:
                             if note.type == 0:
@@ -775,7 +781,6 @@ class Game():
                                     self.effect_group.add(effect)
 
                     if event.key == pygame.K_k: # k 키를 누름
-                        self.press.play(0)
                         self.pressed_k = True
                         for note in self.notes_3:
                             if note.type == 0:
@@ -814,8 +819,10 @@ class Game():
                     if event.key == pygame.K_LEFT:
                         self.music_index -= 1
                     if event.key == pygame.K_SPACE:
+                        self.gst = time.time()
                         pygame.mixer.music.load(self.music_path[self.music_index])
                         self.music_play = True
+                        self.starting = True
                         pygame.mixer.music.play(-1)
                         self.index = 4
                     if event.key == pygame.K_ESCAPE:
@@ -837,33 +844,39 @@ class Game():
                 if event.key == pygame.K_ESCAPE:
                     self.goto_menu = False
                     
-    def put_note_0(self, speed, time, code, long, frame):               # 노트 배치 함수
-        if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 0:
-            self.notes_0.append(Note(0, speed, frame))
-        if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 1:
-            self.notes_0.append(Note_long(0, speed, long, frame))
-    def put_note_1(self, speed, time, code, long, frame):
-        if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 0:
-            self.notes_1.append(Note(1, speed, frame))
-        if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 1:
-            self.notes_1.append(Note_long(1, speed, long, frame))
-    def put_note_2(self, speed, time, code, long, frame):
-        if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 0:
-            self.notes_2.append(Note(2, speed, frame))
-        if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 1:
-            self.notes_2.append(Note_long(2, speed, long, frame))
-    def put_note_3(self, speed, time, code, long, frame):
-        if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 0:
-            self.notes_3.append(Note(3, speed, frame))
-        if self.ticks == time - (FRAME_HEIGHT*7/9 + 5)/speed and code == 1:
-            self.notes_3.append(Note_long(3, speed, long, frame))
+    def put_note_0(self, toggle, pos, code, long, Time):              # 노트 배치 함수
+        if self.Time > pos and self.toggle == toggle and code == 0:
+            self.notes_0.append(Note(0, Time))
+            self.toggle += 1
+        if self.Time > pos and self.toggle == toggle and code == 1:
+            self.notes_0.append(Note_long(0, Time, long))
+            self.toggle += 1
+    def put_note_1(self,toggle, pos, code, long, Time):
+        if self.Time > pos  and self.toggle == toggle and code == 0:
+            self.notes_1.append(Note(1, Time))
+            self.toggle += 1
+        if self.Time > pos  and self.toggle == toggle and code == 1:
+            self.notes_1.append(Note_long(1, Time, long))
+            self.toggle += 1
+    def put_note_2(self, toggle, pos, code, long, Time):
+        if self.Time > pos and self.toggle == toggle and code == 0:
+            self.notes_2.append(Note(2, Time))
+            self.toggle += 1
+        if self.Time > pos and self.toggle == toggle and code == 1:
+            self.notes_2.append(Note_long(2, Time, long))
+            self.toggle += 1
+    def put_note_3(self, toggle, pos, code, long, Time):
+        if self.Time > pos and self.toggle == toggle and code == 0:
+            self.notes_3.append(Note(3, Time))
+            self.toggle += 1
+        if self.Time > pos and self.toggle == toggle and code == 1:
+            self.notes_3.append(Note_long(3, Time, long))
+            self.toggle += 1
             
-    def frame(self, frame): # 프레임 선언 함수
-        self.frame_rate = frame
-            
-    def pos_a(self): # 채보 함수 -> 메모장을 불러들인 후에 메모장에 적힌 내용을 채보로 만듦
+    
+    def start(self, Time):
         try:
-            txt_path = self.chebo_list[self.music_index]
+            txt_path = "assets/logs/child.txt"
         except:
             txt_path = "assets/logs/chebo_path.txt"
         with open(txt_path, 'r') as file:
@@ -872,7 +885,7 @@ class Game():
             line = file.readline()
             list_line = line.split()
             for i in list_line:
-                a = int(i)
+                a = float(i)
                 lines.append(a)
             lines_final.append(lines)
             lines = []
@@ -880,7 +893,7 @@ class Game():
                 line = file.readline()
                 list_line = line.split()
                 for i in list_line:
-                    a = int(i)
+                    a = float(i)
                     lines.append(a)
                 if not list_line:
                     break
@@ -888,19 +901,21 @@ class Game():
                 lines = []
             
         for i in range(len(lines_final)):
-            if lines_final[i][0] == 0:
-                self.put_note_0(15, lines_final[i][1], lines_final[i][2], lines_final[i][3], self.frame_rate)
-            if lines_final[i][0] == 1:
-                self.put_note_1(15, lines_final[i][1], lines_final[i][2], lines_final[i][3], self.frame_rate)
-            if lines_final[i][0] == 2:
-                self.put_note_2(15, lines_final[i][1], lines_final[i][2], lines_final[i][3], self.frame_rate)
-            if lines_final[i][0] == 3:
-                self.put_note_3(15, lines_final[i][1], lines_final[i][2], lines_final[i][3], self.frame_rate)
-            if lines_final[i][0] == 4 and self.ticks == lines_final[i][1]:
-                self.index = 2
+            if lines_final[i][1] == 0:
+                self.put_note_0(lines_final[i][0], lines_final[i][2] - 2, lines_final[i][3], lines_final[i][4], Time)
+            if lines_final[i][1] == 1:
+                self.put_note_1(lines_final[i][0], lines_final[i][2] - 2, lines_final[i][3], lines_final[i][4], Time)
+            if lines_final[i][1] == 2:
+                self.put_note_2(lines_final[i][0], lines_final[i][2] - 2, lines_final[i][3], lines_final[i][4], Time)
+            if lines_final[i][1] == 3:
+                self.put_note_3(lines_final[i][0], lines_final[i][2] - 2, lines_final[i][3], lines_final[i][4], Time)
+
+    
     
     def reset(self):
         # 기초 변수들 초기화
+        self.starting = False
+        self.toggle = 0
         self.score_load = 0
         self.hp = 100
         self.combo = 0
@@ -912,10 +927,7 @@ class Game():
         self.great_count = 0
         self.perfect_count = 0
         self.score = 0
-        self.ticks = 0
-        self.tick = 0
-        self.sec = 0
-        self.min = 0
+
         self.notes_0 = [] # 라인 별 노트 저장 리스트
         self.notes_1 = []
         self.notes_2 = []
@@ -942,17 +954,21 @@ def main():
     clock = pygame.time.Clock()
     game = Game()
     done = False
+    MAXFRAME = 60
+    gst = time.time()
+
 
     while not done:
-        fr = clock.get_fps()
-        game.frame(fr)
+        fps = clock.get_fps()
+        if fps == 0:
+            fps = MAXFRAME
+        Time = time.time() - gst
         done = game.process_event()
-        game.pos_a()
-        game.run_logic()
+        game.run_logic(Time)
         game.display_frame(screen, LEAF_GREEN, WHITE)
         game.display_object(screen)
         pygame.display.flip()
-        clock.tick_busy_loop(60)
+        clock.tick_busy_loop(MAXFRAME)
         
     pygame.quit()
 
