@@ -66,7 +66,7 @@ class Note_long(): # 노트 클래스
         note_images_path = "assets/pics/note_long.png"
         self.image = pygame.image.load(note_images_path)
         self.image = pygame.transform.scale(self.image, (100, 20*(self.length)))
-        self.rect = pygame.Rect(FRAME_X + FRAME_WIDTH/4*self.lane, -20*(self.length), 100, 20*self.length)#self.image.get_rect()
+        self.rect = self.image.get_rect()
         self.rect.width = 100
         self.rect.height = 20*self.length
         self.rect.x = FRAME_X + FRAME_WIDTH/4*self.lane
@@ -80,14 +80,11 @@ class Note_long(): # 노트 클래스
         self.length -= 1
         if self.length < 0:
             self.length = 0
-        #self.image = pygame.transform.scale(self.image, (100, (20*self.length)))
-        self.rect.height = 20*self.length
 
-        
-        
     def draw(self, screen): # 노트 그리기
-        #screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, WHITE, self.rect)
+        self.image = pygame.transform.scale(self.image, (100, (20*(self.length + 2))))
+        screen.blit(self.image, self.rect)
+        
 
     def update(self): # 노트 떨어트리기(스피드)
         self.decesion = self.rect.y + 20*self.length
@@ -235,6 +232,8 @@ class Game():
         # 메인 버튼 리스트
         self.main_select = 0
         self.main_button = ["START", "HELP", "EXIT"]
+        self.decesion_list = ["PERFECT","GREAT","NORMAL"]
+        self.deci_color_list = [SKY_BLUE, LEAF_GREEN, YELLOW]
         
         #곡들 추가
         self.music_path = []
@@ -363,53 +362,25 @@ class Game():
             elif self.d_kimeta == False and self.pressed_d == True and note.type == 1 and abs(note.decesion - self.line) >=80 and abs(note.decesion - self.line) <= 120:
                 self.d_long_exist = 3
                 self.d_kimeta = True
-            if self.d_kimeta == True and self.pressed_d == True and self.d_long_exist == 1 and abs(note.decesion - self.line) < 50 and note.type == 1:
+            if self.d_kimeta == True and self.pressed_d == True and abs(note.decesion - self.line) < 50 and note.type == 1:
                 note.boom()
+                self.score += (4 - self.d_long_exist)*100
+                self.hp += (3 - self.d_long_exist)
+                self.combo += 1
+                self.decesion = self.decesion_list[self.d_long_exist - 1]
+                self.deci_color = self.deci_color_list[self.d_long_exist - 1]
+                self.tmr = 0
+                self.tmr += 1
+                if self.f_long_exist == 1:
+                    self.perfect_count += 1
+                elif self.f_long_exist == 2:
+                    self.great_count += 1
+                elif self.f_long_exist == 3:
+                    self.normal_count += 1
                 if note.length <= 0:
                     del self.notes_0[0]
                     self.d_long_exist = 0
                     self.d_kimeta = False
-                effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
-                self.effect_group.add(effect)
-                self.score += 300
-                self.hp += 3
-                self.combo += 1
-                self.decesion = "PERFECT"
-                self.deci_color = SKY_BLUE
-                self.tmr = 0
-                self.tmr += 1
-                self.perfect_count += 1
-            elif self.d_kimeta == True and self.pressed_d == True and self.d_long_exist == 2 and abs(note.decesion - self.line) < 50 and note.type == 1:
-                note.boom()
-                if note.length <= 0:
-                    del self.notes_0[0]
-                    self.d_long_exist = 0
-                    self.d_kimeta = False
-                effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
-                self.effect_group.add(effect)
-                self.score += 200
-                self.hp += 1
-                self.combo += 1
-                self.decesion = "GREAT"
-                self.deci_color = LEAF_GREEN
-                self.tmr = 0
-                self.tmr += 1
-                self.great_count += 1
-            elif self.d_kimeta == True and self.pressed_d == True and self.d_long_exist == 3 and abs(note.decesion - self.line) < 50 and note.type == 1:
-                note.boom()
-                if note.length <= 0:
-                    del self.notes_0[0]
-                    self.d_long_exist = 0
-                    self.d_kimeta = False
-                effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
-                self.effect_group.add(effect)
-                self.score += 100
-                self.combo += 1
-                self.decesion = "NORMAL"
-                self.deci_color = YELLOW
-                self.tmr = 0
-                self.tmr += 1
-                self.normal_count += 1
 
         for note in self.notes_1:
             if self.f_kimeta == False and self.pressed_f == True and note.type == 1 and abs(note.decesion - self.line) < 40:
@@ -421,53 +392,25 @@ class Game():
             elif self.f_kimeta == False and self.pressed_f == True and note.type == 1 and abs(note.decesion - self.line) >=80 and abs(note.decesion - self.line) <= 120:
                 self.f_long_exist = 3
                 self.f_kimeta = True
-            if self.f_kimeta == True and self.pressed_f == True and self.f_long_exist == 1 and abs(note.decesion - self.line) < 50 and note.type == 1:
+            if self.f_kimeta == True and self.pressed_f == True and abs(note.decesion - self.line) < 50 and note.type == 1:
                 note.boom()
+                self.score += (4 - self.f_long_exist)*100
+                self.hp += (3 - self.f_long_exist)
+                self.combo += 1
+                self.decesion = self.decesion_list[self.f_long_exist - 1]
+                self.deci_color = self.deci_color_list[self.f_long_exist - 1]
+                self.tmr = 0
+                self.tmr += 1
+                if self.f_long_exist == 1:
+                    self.perfect_count += 1
+                elif self.f_long_exist == 2:
+                    self.great_count += 1
+                elif self.f_long_exist == 3:
+                    self.normal_count += 1
                 if note.length <= 0:
                     del self.notes_1[0]
                     self.f_long_exist = 0
                     self.f_kimeta = False
-                effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
-                self.effect_group.add(effect)
-                self.score += 300
-                self.hp += 3
-                self.combo += 1
-                self.decesion = "PERFECT"
-                self.deci_color = SKY_BLUE
-                self.tmr = 0
-                self.tmr += 1
-                self.perfect_count += 1
-            elif self.f_kimeta == True and self.pressed_f == True and self.f_long_exist == 2 and abs(note.decesion - self.line) < 50 and note.type == 1:
-                note.boom()
-                if note.length <= 0:
-                    del self.notes_1[0]
-                    self.f_long_exist = 0
-                    self.f_kimeta = False
-                effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
-                self.effect_group.add(effect)
-                self.score += 200
-                self.hp += 1
-                self.combo += 1
-                self.decesion = "GREAT"
-                self.deci_color = LEAF_GREEN
-                self.tmr = 0
-                self.tmr += 1
-                self.great_count += 1
-            elif self.f_kimeta == True and self.pressed_f == True and self.f_long_exist == 3 and abs(note.decesion - self.line) < 50 and note.type == 1:
-                note.boom()
-                if note.length <= 0:
-                    del self.notes_1[0]
-                    self.f_long_exist = 0
-                    self.f_kimeta = False
-                effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
-                self.effect_group.add(effect)
-                self.score += 100
-                self.combo += 1
-                self.decesion = "NORMAL"
-                self.deci_color = YELLOW
-                self.tmr = 0
-                self.tmr += 1
-                self.normal_count += 1
 
         for note in self.notes_2:
             if self.j_kimeta == False and self.pressed_j == True and note.type == 1 and abs(note.decesion - self.line) < 40:
@@ -479,51 +422,25 @@ class Game():
             elif self.j_kimeta == False and self.pressed_j == True and note.type == 1 and abs(note.decesion - self.line) >=80 and abs(note.decesion - self.line) <= 120:
                 self.j_long_exist = 3
                 self.j_kimeta = True
-            if self.j_kimeta == True and self.pressed_j == True and self.k_long_exist == 1 and abs(note.decesion - self.line) < 50 and note.type == 1:
+            if self.j_kimeta == True and self.pressed_j == True and abs(note.decesion - self.line) < 50 and note.type == 1:
                 note.boom()
+                self.score += (4 - self.j_long_exist)*100
+                self.hp += (3 - self.j_long_exist)
+                self.combo += 1
+                self.decesion = self.decesion_list[self.j_long_exist - 1]
+                self.deci_color = self.deci_color_list[self.j_long_exist - 1]
+                self.tmr = 0
+                self.tmr += 1
+                if self.j_long_exist == 1:
+                    self.perfect_count += 1
+                elif self.j_long_exist == 2:
+                    self.great_count += 1
+                elif self.j_long_exist == 3:
+                    self.normal_count += 1
                 if note.length <= 0:
                     del self.notes_2[0]
                     self.j_long_exist = 0
                     self.j_kimeta = False
-                effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
-                self.effect_group.add(effect)
-                self.score += 300
-                self.hp += 3
-                self.combo += 1
-                self.decesion = "PERFECT"
-                self.deci_color = SKY_BLUE
-                self.tmr = 0
-                self.tmr += 1
-                self.perfect_count += 1
-            elif self.j_kimeta == True and self.pressed_j == True and self.j_long_exist == 2 and abs(note.decesion - self.line) < 50 and note.type == 1:
-                note.boom()
-                if note.length <= 0:
-                    del self.notes_2[0]
-                    self.j_long_exist = 0
-                    self.j_kimeta = False
-                effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
-                self.effect_group.add(effect)
-                self.score += 200
-                self.hp += 1
-                self.combo += 1
-                self.decesion = "GREAT"
-                self.deci_color = LEAF_GREEN
-                self.tmr = 0
-                self.tmr += 1
-                self.great_count += 1
-            elif self.j_kimeta == True and self.pressed_j == True and self.j_long_exist == 3 and abs(note.decesion - self.line) < 50 and note.type == 1:
-                note.boom()
-                if note.length <= 0:
-                    del self.notes_2[0]
-                    self.j_long_exist = 0
-                    self.j_kimeta = False
-                self.score += 100
-                self.combo += 1
-                self.decesion = "NORMAL"
-                self.deci_color = YELLOW
-                self.tmr = 0
-                self.tmr += 1
-                self.normal_count += 1
 
         for note in self.notes_3:
             if self.k_kimeta == False and self.pressed_k == True and note.type == 1 and abs(note.decesion - self.line) < 40:
@@ -535,56 +452,26 @@ class Game():
             elif self.k_kimeta == False and self.pressed_k == True and note.type == 1 and abs(note.decesion - self.line) >=80 and abs(note.decesion - self.line) <= 120:
                 self.k_long_exist = 3
                 self.k_kimeta = True
-            if self.k_kimeta == True and self.pressed_k == True and self.k_long_exist == 1 and abs(note.decesion - self.line) < 50 and note.type == 1:
+            if self.k_kimeta == True and self.pressed_k == True and abs(note.decesion - self.line) < 50 and note.type == 1:
                 note.boom()
+                self.score += (4 - self.k_long_exist)*100
+                self.hp += (3 - self.k_long_exist)
+                self.combo += 1
+                self.decesion = self.decesion_list[self.k_long_exist - 1]
+                self.deci_color = self.deci_color_list[self.k_long_exist - 1]
+                self.tmr = 0
+                self.tmr += 1
+                if self.k_long_exist == 1:
+                    self.perfect_count += 1
+                elif self.k_long_exist == 2:
+                    self.great_count += 1
+                elif self.k_long_exist == 3:
+                    self.normal_count += 1
                 if note.length <= 0:
                     del self.notes_3[0]
                     self.k_long_exist = 0
                     self.k_kimeta = False
-                effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
-                self.effect_group.add(effect)
-                self.score += 300
-                self.hp += 3
-                self.combo += 1
-                self.decesion = "PERFECT"
-                self.deci_color = SKY_BLUE
-                self.tmr = 0
-                self.tmr += 1
-                self.perfect_count += 1
-            elif self.k_kimeta == True and self.pressed_k == True and self.k_long_exist == 2 and abs(note.decesion - self.line) < 50 and note.type == 1:
-                note.boom()
-                if note.length <= 0:
-                    del self.notes_3[0]
-                    self.k_long_exist = 0
-                    self.k_kimeta = False
-                effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
-                self.effect_group.add(effect)
-                self.score += 200
-                self.hp += 1
-                self.combo += 1
-                self.decesion = "GREAT"
-                self.deci_color = LEAF_GREEN
-                self.tmr = 0
-                self.tmr += 1
-                self.great_count += 1
-            elif self.k_kimeta == True and self.pressed_k == True and self.k_long_exist == 3 and abs(note.decesion - self.line) < 50 and note.type == 1:
-                note.boom()
-                if note.length <= 0:
-                    del self.notes_3[0]
-                    self.k_long_exist = 0
-                    self.k_kimeta = False
-                effect = Effect(FRAME_X + FRAME_WIDTH*note.lane/4 + 50, FRAME_HEIGHT* 7/9 + 5)
-                self.effect_group.add(effect)
-                self.score += 100
-                self.combo += 1
-                self.decesion = "NORMAL"
-                self.deci_color = YELLOW
-                self.tmr = 0
-                self.tmr += 1
-                self.normal_count += 1
-
-
-
+                    
 
     def run_logic(self, Time): 
         if self.speed >= 3.5:
@@ -772,7 +659,7 @@ class Game():
                 self.effect_rect.x = FRAME_X + FRAME_WIDTH/4*3
                 self.effect_rect.y = FRAME_HEIGHT* 7/9 - self.effect_rect.height
                 screen.blit(self.effect, self.effect_rect)
-                
+            
             # 라인별 노트 업데이트, 그리기
             for note in self.notes_0:
                 note.update()
@@ -786,6 +673,8 @@ class Game():
             for note in self.notes_3:
                 note.update()
                 note.draw(screen)
+            #판정선
+            pygame.draw.line(screen, OCEAN_BLUE, [FRAME_X, FRAME_HEIGHT* 7/9 + 5],[FRAME_X+FRAME_WIDTH, FRAME_HEIGHT*7/9 + 5], width=10)
             # HP 바 그리기
             self.hp_length = FRAME_HEIGHT/2
             self.hp_half = self.hp - 50
@@ -897,8 +786,7 @@ class Game():
         if self.index == 0:
             if self.help_on == True:
                 screen.blit(self.main_help, [0, 0])
-        
-        
+            
     def display_frame(self, screen, keycolor, fontcolor): #게임 프레임 그리기 - 플레이하는 부분
         if self.index == 4: # 게임 플레이 인덱스
             screen.blit(self.main_background_dark, [0, 0])
@@ -907,8 +795,6 @@ class Game():
             keyframe_size = FRAME_WIDTH/4 - KEY_SPACE*2
             for i in range(3): #노트 구분 선
                 pygame.draw.line(screen, GRAY, [FRAME_X + (i + 1)*(FRAME_WIDTH/4), 0], [FRAME_X + (i + 1)*(FRAME_WIDTH/4), FRAME_HEIGHT + LINE_WIDTH*2], width=1)
-            #판정선
-            pygame.draw.line(screen, OCEAN_BLUE, [FRAME_X, FRAME_HEIGHT* 7/9 + 5],[FRAME_X+FRAME_WIDTH, FRAME_HEIGHT*7/9 + 5], width=10)
             #게임 프레임
             pygame.draw.rect(screen, WHITE, [FRAME_X - LINE_WIDTH, -1 * LINE_WIDTH, FRAME_WIDTH + LINE_WIDTH*2, FRAME_HEIGHT + LINE_WIDTH*2], width=LINE_WIDTH)
             #HP바 프레임
