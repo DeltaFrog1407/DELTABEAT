@@ -837,9 +837,9 @@ class Game():
             if event.type == pygame.QUIT:
                 return True
             if event.type == pygame.KEYDOWN:
-                print(self.Time)
+                
                 if event.key == pygame.K_m:
-                    pass
+                    print(self.Time)
                 if self.index == 4: # 게임 플레이 시
                     if event.key == pygame.K_d: # d 키를 누름
                         self.pressed_d = True
