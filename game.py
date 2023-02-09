@@ -96,31 +96,23 @@ class Note_long(): # 노트 클래스
             return True
         return False
 
-class Effect(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)
-        self.images = []
-        for num in range(1, 32):
-            img_path = "assets/effect/blue_{}.png".format(num)
-            img = pygame.image.load(img_path)
-            self.images.append(img)
-        self.index = 0
-        self.image = self.images[self.index]
-        self.rect = self.image.get_rect()
-        self.rect.center = [x, y]
-        self.counter = 0
-        
+class Effect():
+    def __init__(self, screen, x, y, color):
+        self.screen = screen
+        self.x = x
+        self.y = y
+        self.color = color
+        self.t = 0
+        self.size = 0
+
     def update(self):
-        speed = 1
-        self.counter += 1
-        if self.counter >= speed and self.index < len(self.images) - 1:
-            self.counter = 0
-            self.index += 1
-            self.image = self.images[self.index]
-        
-        if self.index >= len(self.images) - 1 and self.counter > speed:
-            self.kill()
-            
+        self.size += 1
+        self.t += 1
+
+    def draw(self):
+        self.circle = pygame.draw.circle(self.screen, self.color, [self.x, self.y], self.size*2, width = 10)
+        self.circle = pygame.draw.circle(self.screen, self.color, [self.x, self.y], self.size*2 - 15, width = 10)
+
         
         
 class Game():
@@ -183,10 +175,9 @@ class Game():
         self.hp = 100
         self.combo = 0
         self.damage = 5
-        self.decesion = False
         self.tmr = 0
         self.tmr_result = 0
-        self.effect_group = pygame.sprite.Group()
+        self.effect_group = []
         self.perfect_count = 0
         self.great_count = 0
         self.normal_count = 0
@@ -204,6 +195,7 @@ class Game():
         self.speed = 3.0
         self.starting = False
         self.delay = 0.0
+        self.decesion = ""
 
         self.notes_0 = [] # 라인 별 노트 저장 리스트
         self.notes_1 = []
@@ -351,19 +343,21 @@ class Game():
             self.perfect_count += 1
 
         
-    def long_note_decesion(self):
+    def long_note_decesion(self, screen):
         for note in self.notes_0:
-            if self.d_kimeta == False and self.pressed_d == True and note.type == 1 and abs(note.decesion - self.line) < 40:
+            if self.d_kimeta == False and self.pressed_d == True and note.type == 1 and abs(note.decesion - self.line) < 60: # PERFECT
                 self.d_long_exist = 1
                 self.d_kimeta = True
-            elif self.d_kimeta == False and self.pressed_d == True and note.type == 1 and abs(note.decesion - self.line) >=40 and abs(note.decesion - self.line) < 80:
+            elif self.d_kimeta == False and self.pressed_d == True and note.type == 1 and abs(note.decesion - self.line) >= 60 and abs(note.decesion - self.line) < 100: # GREAT
                 self.d_long_exist = 2
                 self.d_kimeta = True
-            elif self.d_kimeta == False and self.pressed_d == True and note.type == 1 and abs(note.decesion - self.line) >=80 and abs(note.decesion - self.line) <= 120:
+            elif self.d_kimeta == False and self.pressed_d == True and note.type == 1 and abs(note.decesion - self.line) >= 100 and abs(note.decesion - self.line) <= 140: # NORMAL
                 self.d_long_exist = 3
                 self.d_kimeta = True
             if self.d_kimeta == True and self.pressed_d == True and abs(note.decesion - self.line) < 50 and note.type == 1:
                 note.boom()
+                effect = Effect(screen, FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5, WHITE)
+                self.effect_group.append(effect)
                 self.score += (4 - self.d_long_exist)*100
                 self.hp += (3 - self.d_long_exist)
                 self.combo += 1
@@ -383,17 +377,19 @@ class Game():
                     self.d_kimeta = False
 
         for note in self.notes_1:
-            if self.f_kimeta == False and self.pressed_f == True and note.type == 1 and abs(note.decesion - self.line) < 40:
+            if self.f_kimeta == False and self.pressed_f == True and note.type == 1 and abs(note.decesion - self.line) < 60:  # PERFECT
                 self.f_long_exist = 1
                 self.f_kimeta = True
-            elif self.f_kimeta == False and self.pressed_f == True and note.type == 1 and abs(note.decesion - self.line) >=40 and abs(note.decesion - self.line) < 80:
+            elif self.f_kimeta == False and self.pressed_f == True and note.type == 1 and abs(note.decesion - self.line) >=60 and abs(note.decesion - self.line) < 100: # GREAT
                 self.f_long_exist = 2
                 self.f_kimeta = True
-            elif self.f_kimeta == False and self.pressed_f == True and note.type == 1 and abs(note.decesion - self.line) >=80 and abs(note.decesion - self.line) <= 120:
+            elif self.f_kimeta == False and self.pressed_f == True and note.type == 1 and abs(note.decesion - self.line) >= 100 and abs(note.decesion - self.line) <= 140: # NORMAL
                 self.f_long_exist = 3
                 self.f_kimeta = True
             if self.f_kimeta == True and self.pressed_f == True and abs(note.decesion - self.line) < 50 and note.type == 1:
                 note.boom()
+                effect = Effect(screen, FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5, WHITE)
+                self.effect_group.append(effect)
                 self.score += (4 - self.f_long_exist)*100
                 self.hp += (3 - self.f_long_exist)
                 self.combo += 1
@@ -413,17 +409,19 @@ class Game():
                     self.f_kimeta = False
 
         for note in self.notes_2:
-            if self.j_kimeta == False and self.pressed_j == True and note.type == 1 and abs(note.decesion - self.line) < 40:
+            if self.j_kimeta == False and self.pressed_j == True and note.type == 1 and abs(note.decesion - self.line) < 60: # PERFECT
                 self.j_long_exist = 1
                 self.j_kimeta = True
-            elif self.j_kimeta == False and self.pressed_j == True and note.type == 1 and abs(note.decesion - self.line) >=40 and abs(note.decesion - self.line) < 80:
+            elif self.j_kimeta == False and self.pressed_j == True and note.type == 1 and abs(note.decesion - self.line) >=60 and abs(note.decesion - self.line) < 100: # GREAT
                 self.j_long_exist = 2
                 self.j_kimeta = True
-            elif self.j_kimeta == False and self.pressed_j == True and note.type == 1 and abs(note.decesion - self.line) >=80 and abs(note.decesion - self.line) <= 120:
-                self.j_long_exist = 3
+            elif self.j_kimeta == False and self.pressed_j == True and note.type == 1 and abs(note.decesion - self.line) >=100 and abs(note.decesion - self.line) <= 140: # NORMAL
+                self.j_long_exist = 3 
                 self.j_kimeta = True
             if self.j_kimeta == True and self.pressed_j == True and abs(note.decesion - self.line) < 50 and note.type == 1:
                 note.boom()
+                effect = Effect(screen, FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5, WHITE)
+                self.effect_group.append(effect)
                 self.score += (4 - self.j_long_exist)*100
                 self.hp += (3 - self.j_long_exist)
                 self.combo += 1
@@ -443,17 +441,19 @@ class Game():
                     self.j_kimeta = False
 
         for note in self.notes_3:
-            if self.k_kimeta == False and self.pressed_k == True and note.type == 1 and abs(note.decesion - self.line) < 40:
+            if self.k_kimeta == False and self.pressed_k == True and note.type == 1 and abs(note.decesion - self.line) < 60: # PERFECT
                 self.k_long_exist = 1
                 self.k_kimeta = True
-            elif self.k_kimeta == False and self.pressed_k == True and note.type == 1 and abs(note.decesion - self.line) >=40 and abs(note.decesion - self.line) < 80:
+            elif self.k_kimeta == False and self.pressed_k == True and note.type == 1 and abs(note.decesion - self.line) >=60 and abs(note.decesion - self.line) < 100: # GREAT
                 self.k_long_exist = 2
                 self.k_kimeta = True
-            elif self.k_kimeta == False and self.pressed_k == True and note.type == 1 and abs(note.decesion - self.line) >=80 and abs(note.decesion - self.line) <= 120:
+            elif self.k_kimeta == False and self.pressed_k == True and note.type == 1 and abs(note.decesion - self.line) >=100 and abs(note.decesion - self.line) <= 140: # NORMAL
                 self.k_long_exist = 3
                 self.k_kimeta = True
             if self.k_kimeta == True and self.pressed_k == True and abs(note.decesion - self.line) < 50 and note.type == 1:
                 note.boom()
+                effect = Effect(screen, FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5, WHITE)
+                self.effect_group.append(effect)
                 self.score += (4 - self.k_long_exist)*100
                 self.hp += (3 - self.k_long_exist)
                 self.combo += 1
@@ -473,7 +473,7 @@ class Game():
                     self.k_kimeta = False
                     
 
-    def run_logic(self, Time): 
+    def run_logic(self, Time, screen): 
         if self.speed >= 3.5:
             self.speed = 3.5
         elif self.speed <= 2.5:
@@ -487,7 +487,7 @@ class Game():
             self.start(Time)
         if self.hp <= 0:
             self.index = 2
-        self.long_note_decesion()
+        self.long_note_decesion(screen)
         # 노트 D
         for note in self.notes_0:
             if note.code == 0:
@@ -561,7 +561,13 @@ class Game():
         if self.hp > 100:
             self.hp = 100
         # 이펙트 업데이트
-        self.effect_group.update()
+        for i in self.effect_group:
+            i.update()
+            if i.t >= 14:
+                self.size = 7
+                if i.t >= 25:
+                    del self.effect_group[0]
+
         
         # 곡 선택 인덱스
         if self.index == 3:
@@ -569,14 +575,13 @@ class Game():
                 self.music_index = len(self.music_path) - 1
             elif self.music_index >= len(self.music_path):
                 self.music_index = 1
-
                 
         # 결과 인덱스
         if self.index == 2:
             note_all = self.perfect_count + self.great_count + self.normal_count + self.fail_count
             self.rank_load = 0
             try:
-                note_rate = int(self.perfect_count/note_all*100)
+                note_rate = int((self.perfect_count + self.great_count)/note_all*100)
             except:
                 note_rate = 1
             if note_rate >= 95: # S랭크 결정
@@ -629,7 +634,7 @@ class Game():
     def draw_text_foggy(self, screen, text, font, x, y, main_color, parameter): # 텍스트 입력용 함수
         text_obj = font.render(text, True, main_color)
         text_rect = text_obj.get_rect()
-        text_obj.set_alpha(parameter)
+        text_obj.set_alpha(parameter*5)
         text_rect.center = x,y
         screen.blit(text_obj, text_rect)
             
@@ -659,7 +664,9 @@ class Game():
                 self.effect_rect.x = FRAME_X + FRAME_WIDTH/4*3
                 self.effect_rect.y = FRAME_HEIGHT* 7/9 - self.effect_rect.height
                 screen.blit(self.effect, self.effect_rect)
-            
+
+            #판정선
+            pygame.draw.line(screen, OCEAN_BLUE, [FRAME_X, FRAME_HEIGHT* 7/9 + 5],[FRAME_X+FRAME_WIDTH, FRAME_HEIGHT*7/9 + 5], width=10)
             # 라인별 노트 업데이트, 그리기
             for note in self.notes_0:
                 note.update()
@@ -673,8 +680,9 @@ class Game():
             for note in self.notes_3:
                 note.update()
                 note.draw(screen)
-            #판정선
-            pygame.draw.line(screen, OCEAN_BLUE, [FRAME_X, FRAME_HEIGHT* 7/9 + 5],[FRAME_X+FRAME_WIDTH, FRAME_HEIGHT*7/9 + 5], width=10)
+
+            # 판정선 아래 공간
+            pygame.draw.rect(screen, BLACK, [FRAME_X, FRAME_HEIGHT* 7/9 + 10, FRAME_WIDTH, FRAME_HEIGHT*2/9 - 15])
             # HP 바 그리기
             self.hp_length = FRAME_HEIGHT/2
             self.hp_half = self.hp - 50
@@ -687,13 +695,13 @@ class Game():
             elif self.hp < 50 and self.hp >= 0:
                 self.blue = int(255 - 255*(1 - self.hp/50))
                 self.red = 255
-            self.hp_color = (self.red, self.blue, 0)        
+            self.hp_color = (self.red, self.blue, 0)
             if self.hp > 0: # 체력 바에 역동감을 주기 위한 효과 넣기
-                a = random.choice([-1, 1])
+                #a = random.choice([-1, 1])
                 if self.hp == 100:
                     self.hp_visual = 100
                 elif self. hp <= 100:
-                    self.hp_visual = self.hp + a
+                    self.hp_visual = self.hp
                 elif self.hp_visual <= 0:
                     self.hp_visual = 0
             #hp바 그리기
@@ -711,15 +719,16 @@ class Game():
             self.score_visual_two = " ".join(self.score_visual)
             self.draw_text(screen, self.score_visual_two, self.font, FRAME_X + FRAME_WIDTH/2, SCREEN_HEIGHT - 40, DARK_ORANGE)
             # 노트 판정에 따른 인디케이터
-            if self.decesion:
+            if self.decesion != "":
                 if self.tmr >= 1 and self.tmr <= 20:
                     self.tmr += 1
                     self.draw_text_foggy(screen, self.decesion, self.font, FRAME_X + FRAME_WIDTH/2, SCREEN_HEIGHT*3/5 - self.tmr, self.deci_color, 250 - self.tmr)
                 elif self.tmr < 100:
                     self.tmr = 0
-                    self.decesion = False
+                    self.decesion = ""
             # 노트 타격 효과 그리기
-            self.effect_group.draw(screen)
+            for i in self.effect_group:
+                i.draw()
         decesions = ["PERFECT", "GREAT", "NORMAL", "FAIL"]
         decesions_color = [SKY_BLUE, LEAF_GREEN, YELLOW, RED]
         
@@ -799,10 +808,6 @@ class Game():
             pygame.draw.rect(screen, WHITE, [FRAME_X - LINE_WIDTH, -1 * LINE_WIDTH, FRAME_WIDTH + LINE_WIDTH*2, FRAME_HEIGHT + LINE_WIDTH*2], width=LINE_WIDTH)
             #HP바 프레임
             pygame.draw.rect(screen, WHITE, [(FRAME_X + FRAME_WIDTH), (FRAME_HEIGHT / 2), LINE_WIDTH*4, (FRAME_HEIGHT / 2) + LINE_WIDTH], width = LINE_WIDTH)
-            for i, key in enumerate(["D", "F", "J", "K"]): #게임 판정선 아래 키 설명
-                pygame.draw.rect(screen, keycolor, [x+FRAME_WIDTH*i/4, y, keyframe_size, keyframe_size])
-                keyset = self.font.render(key, True, fontcolor)
-                screen.blit(keyset, (x+FRAME_WIDTH*i/4+keyframe_size/2-KEY_SPACE, y+KEY_SPACE))
             
         elif self.index == 0: # 메인 메뉴 인덱스
             screen.blit(self.main_background, [0, 0])# 배경화면
@@ -832,7 +837,7 @@ class Game():
             screen.blit(self.rank_frame, [-255, 175])
             self.draw_text(screen, "PRESS SPACE TO START", self.font_30, 800, 50, WHITE)
     
-    def process_event(self):
+    def process_event(self, screen):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True
@@ -849,8 +854,8 @@ class Game():
                                     self.note_decesion(note.decesion, self.line)
                                     del self.notes_0[0]
                                 if abs(self.line - note.decesion) < 120 and note.lane == 0: # 이펙트 개체 생성 - FAIL만 아닐 시
-                                    effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
-                                    self.effect_group.add(effect)
+                                    effect = Effect(screen, FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5, WHITE)
+                                    self.effect_group.append(effect)
                         
                     if event.key == pygame.K_f: # f 키를 누름
                         self.pressed_f = True
@@ -860,8 +865,8 @@ class Game():
                                     self.note_decesion(note.decesion, self.line)
                                     del self.notes_1[0]
                                 if abs(self.line - note.decesion) < 120 and note.lane == 1: # 이펙트 개체 생성 - FAIL만 아닐 시
-                                    effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
-                                    self.effect_group.add(effect)
+                                    effect = Effect(screen, FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5, WHITE)
+                                    self.effect_group.append(effect)
 
                     if event.key == pygame.K_j: # j 키를 누름
                         self.pressed_j = True
@@ -871,8 +876,8 @@ class Game():
                                     self.note_decesion(note.rect.y, self.line)
                                     del self.notes_2[0]
                                 if abs(self.line - note.decesion) < 120 and note.lane == 2: # 이펙트 개체 생성 - FAIL만 아닐 시
-                                    effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
-                                    self.effect_group.add(effect)
+                                    effect = Effect(screen, FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5, WHITE)
+                                    self.effect_group.append(effect)
 
                     if event.key == pygame.K_k: # k 키를 누름
                         self.pressed_k = True
@@ -882,8 +887,8 @@ class Game():
                                     self.note_decesion(note.rect.y, self.line)
                                     del self.notes_3[0]
                                 if abs(self.line - note.decesion) < 120 and note.lane == 3: # 이펙트 개체 생성 - FAIL만 아닐 시
-                                    effect = Effect(FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5)
-                                    self.effect_group.add(effect)
+                                    effect = Effect(screen, FRAME_X + FRAME_WIDTH/4*note.lane + 50, FRAME_HEIGHT* 7/9 + 5, WHITE)
+                                    self.effect_group.append(effect)
                     if event.key == pygame.K_q:
                         self.delay -= 0.1
                         self.delay = round(self.delay, 1)
@@ -1050,6 +1055,8 @@ class Game():
         self.great_count = 0
         self.perfect_count = 0
         self.score = 0
+        self.tmr = 0
+        self.decesion = ""
 
         self.notes_0 = [] # 라인 별 노트 저장 리스트
         self.notes_1 = []
@@ -1086,8 +1093,8 @@ def main():
         if fps == 0:
             fps = MAXFRAME
         Time = time.time() - gst
-        done = game.process_event()
-        game.run_logic(Time)
+        done = game.process_event(screen)
+        game.run_logic(Time, screen)
         game.display_frame(screen, LEAF_GREEN, WHITE)
         game.display_object(screen)
         pygame.display.flip()
