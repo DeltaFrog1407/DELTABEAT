@@ -3,7 +3,7 @@ import sys
 import random
 import os
 import time
-import decimal
+import math
 
 SCREEN_HEIGHT = 900
 SCREEN_WIDTH = 1600
@@ -110,9 +110,54 @@ class Effect():
         self.t += 1
 
     def draw(self):
-        self.circle = pygame.draw.circle(self.screen, self.color, [self.x, self.y], self.size*2, width = 10)
-        self.circle = pygame.draw.circle(self.screen, self.color, [self.x, self.y], self.size*2 - 15, width = 10)
+        self.circle = pygame.draw.circle(self.screen, self.color, [self.x, self.y], self.size, width = 3)
+        #self.circle = pygame.draw.circle(self.screen, self.color, [self.x, self.y], self.size - 15, width = 5)
 
+class KEYS():
+    def __init__(self):
+        self.btn_clr = 0
+        self.btn_tmr = 0
+        self.btn_size = 0
+        
+    def buttons(self, screen, lane, pressed):
+        radius = 25
+        self.btn_tmr += 1
+        self.btn_clr += 40
+        if pressed == False:
+            self.btn_size = 0
+            self.btn_clr = 0
+            button_color = (self.btn_clr, self.btn_clr, 0)
+            button_width = 60
+            button_height = 60
+        else:
+            if self.btn_clr >= 255:
+                self.btn_clr = 255
+            self.btn_size += 3
+            if self.btn_size >= 20:
+                self.btn_size = 20
+            button_color = (self.btn_clr, self.btn_clr, 0)
+            button_width = 60 + self.btn_size
+            button_height = 60 + self.btn_size
+            radius = 23
+
+        ang = math.pi * self.btn_tmr / 36 / 20
+        pygame.draw.circle(screen, button_color, [FRAME_X + FRAME_WIDTH*lane/4 + 50, FRAME_HEIGHT* 7/9 + 35 + 30]
+                           , radius-4)
+        pygame.draw.circle(screen, WHITE, [FRAME_X + FRAME_WIDTH*lane/4 + 50, FRAME_HEIGHT* 7/9 + 35 + 30]
+                           , radius, width = 4)
+        pygame.draw.arc(screen, WHITE, [FRAME_X + 50 - button_width/2 + FRAME_WIDTH*lane/4, FRAME_HEIGHT* 7/9 + 65 - button_width/2,
+        button_width, button_height],
+        ang, ang+math.pi/10*4, 3)
+        pygame.draw.arc(screen, WHITE, [FRAME_X + 50 - button_width/2 + FRAME_WIDTH*lane/4, FRAME_HEIGHT* 7/9 + 65 - button_width/2,
+        button_width, button_height],
+        ang+math.pi/10*5, ang+math.pi/10*9, 3)
+        pygame.draw.arc(screen, WHITE, [FRAME_X + 50 - button_width/2 + FRAME_WIDTH*lane/4, FRAME_HEIGHT* 7/9 + 65 - button_width/2,
+        button_width, button_height],
+        ang+math.pi/10*10, ang+math.pi/10*14, 3)
+        pygame.draw.arc(screen, WHITE, [FRAME_X + 50 - button_width/2 + FRAME_WIDTH*lane/4, FRAME_HEIGHT* 7/9 + 65 - button_width/2,
+        button_width, button_height],
+        ang+math.pi/10*15, ang+math.pi/10*19, 3)
+        
         
         
 class Game():
@@ -170,7 +215,7 @@ class Game():
         self.gst = time.time()
         # 필요 변수들 불러오기
         self.version = "0.1"
-        self.line = FRAME_HEIGHT* 7/9 + 10
+        self.line = FRAME_HEIGHT* 7/9 +7
         self.score = 0
         self.hp = 100
         self.combo = 0
@@ -196,6 +241,8 @@ class Game():
         self.starting = False
         self.delay = 0.0
         self.decesion = ""
+        self.btn_tmr = 0
+        self.btn_clr = 0
 
         self.notes_0 = [] # 라인 별 노트 저장 리스트
         self.notes_1 = []
@@ -226,7 +273,11 @@ class Game():
         self.main_button = ["START", "HELP", "EXIT"]
         self.decesion_list = ["PERFECT","GREAT","NORMAL"]
         self.deci_color_list = [SKY_BLUE, LEAF_GREEN, YELLOW]
-        
+        self.button_d = KEYS()
+        self.button_f = KEYS()
+        self.button_j = KEYS()
+        self.button_k = KEYS()
+    
         #곡들 추가
         self.music_path = []
         self.jacket_path = []
@@ -472,7 +523,6 @@ class Game():
                     self.k_long_exist = 0
                     self.k_kimeta = False
                     
-
     def run_logic(self, Time, screen): 
         if self.speed >= 3.5:
             self.speed = 3.5
@@ -488,70 +538,71 @@ class Game():
         if self.hp <= 0:
             self.index = 2
         self.long_note_decesion(screen)
-        # 노트 D
-        for note in self.notes_0:
-            if note.code == 0:
-                note.rect.y = FRAME_HEIGHT* 7/9 + 5 + 20 + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
-            elif note.code == 1:
-                note.rect.y = FRAME_HEIGHT* 7/9 + 5  - note.length_first*20  + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
-            if note.out_of_screen():  # 노트가 밖에 나갈 때 삭제
-                del self.notes_0[0]
-                self.decesion = "FAIL"
-                self.deci_color = RED
-                self.tmr = 0
-                self.tmr += 1
-                self.hp -= 5
-                self.fail_count += 1
-                if self.combo > 0:
-                    self.combo = 0
-        #노트 F
-        for note in self.notes_1:
-            if note.code == 0:
-                note.rect.y = FRAME_HEIGHT* 7/9 + 5 + 20 + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
-            elif note.code == 1:
-                note.rect.y = FRAME_HEIGHT* 7/9 + 5  - note.length_first*20  + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
-            if note.out_of_screen(): # 노트가 밖에 나갈 때 삭제               
-                del self.notes_1[0]
-                self.decesion = "FAIL"
-                self.deci_color = RED
-                self.tmr = 0
-                self.tmr += 1
-                self.hp -= 5
-                self.fail_count += 1
-                if self.combo > 0:
-                    self.combo = 0                
-        #노트 J
-        for note in self.notes_2:
-            if note.code == 0:
-                note.rect.y = FRAME_HEIGHT* 7/9 + 5 + 20 + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
-            elif note.code == 1:
-                note.rect.y = FRAME_HEIGHT* 7/9 + 5  - note.length_first*20  + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
-            if note.out_of_screen(): # 노트가 밖에 나갈 때 삭제
-                del self.notes_2[0]
-                self.decesion = "FAIL"
-                self.deci_color = RED
-                self.tmr = 0
-                self.tmr += 1
-                self.hp -= 5
-                self.fail_count += 1
-                if self.combo > 0:
-                    self.combo = 0                    
-        #노트 K
-        for note in self.notes_3:
-            if note.code == 0:
-                note.rect.y = FRAME_HEIGHT* 7/9 + 5 + 20 + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
-            elif note.code == 1:
-                note.rect.y = FRAME_HEIGHT* 7/9 + 5  - note.length_first*20  + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
-            if note.out_of_screen(): # 노트가 밖에 나갈 때 삭제
-                del self.notes_3[0]
-                self.decesion = "FAIL"
-                self.deci_color = RED
-                self.tmr = 0
-                self.tmr += 1
-                self.hp -= 5
-                self.fail_count += 1
-                if self.combo > 0:
-                    self.combo = 0
+        if self.index == 4:
+            # 노트 D
+            for note in self.notes_0:
+                if note.code == 0:
+                    note.rect.y = FRAME_HEIGHT* 7/9 + 5 + 20 + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
+                elif note.code == 1:
+                    note.rect.y = FRAME_HEIGHT* 7/9 + 5  - note.length_first*20  + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
+                if note.out_of_screen():  # 노트가 밖에 나갈 때 삭제
+                    del self.notes_0[0]
+                    self.decesion = "FAIL"
+                    self.deci_color = RED
+                    self.tmr = 0
+                    self.tmr += 1
+                    self.hp -= 5
+                    self.fail_count += 1
+                    if self.combo > 0:
+                        self.combo = 0
+            #노트 F
+            for note in self.notes_1:
+                if note.code == 0:
+                    note.rect.y = FRAME_HEIGHT* 7/9 + 5 + 20 + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
+                elif note.code == 1:
+                    note.rect.y = FRAME_HEIGHT* 7/9 + 5  - note.length_first*20  + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
+                if note.out_of_screen(): # 노트가 밖에 나갈 때 삭제               
+                    del self.notes_1[0]
+                    self.decesion = "FAIL"
+                    self.deci_color = RED
+                    self.tmr = 0
+                    self.tmr += 1
+                    self.hp -= 5
+                    self.fail_count += 1
+                    if self.combo > 0:
+                        self.combo = 0                
+            #노트 J
+            for note in self.notes_2:
+                if note.code == 0:
+                    note.rect.y = FRAME_HEIGHT* 7/9 + 5 + 20 + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
+                elif note.code == 1:
+                    note.rect.y = FRAME_HEIGHT* 7/9 + 5  - note.length_first*20  + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
+                if note.out_of_screen(): # 노트가 밖에 나갈 때 삭제
+                    del self.notes_2[0]
+                    self.decesion = "FAIL"
+                    self.deci_color = RED
+                    self.tmr = 0
+                    self.tmr += 1
+                    self.hp -= 5
+                    self.fail_count += 1
+                    if self.combo > 0:
+                        self.combo = 0                    
+            #노트 K
+            for note in self.notes_3:
+                if note.code == 0:
+                    note.rect.y = FRAME_HEIGHT* 7/9 + 5 + 20 + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
+                elif note.code == 1:
+                    note.rect.y = FRAME_HEIGHT* 7/9 + 5  - note.length_first*20  + (Time - note.Time_pre)*350*self.speed*(SCREEN_HEIGHT/900) - SCREEN_HEIGHT/100
+                if note.out_of_screen(): # 노트가 밖에 나갈 때 삭제
+                    del self.notes_3[0]
+                    self.decesion = "FAIL"
+                    self.deci_color = RED
+                    self.tmr = 0
+                    self.tmr += 1
+                    self.hp -= 5
+                    self.fail_count += 1
+                    if self.combo > 0:
+                        self.combo = 0
             
         if self.main_select > 4: # 메인화면 버튼 선택 로직 : 선택 인덱스가 갯수 초과면 다시 돌아오게 하기
             self.main_select = 1
@@ -563,9 +614,9 @@ class Game():
         # 이펙트 업데이트
         for i in self.effect_group:
             i.update()
-            if i.t >= 14:
-                self.size = 7
-                if i.t >= 25:
+            if i.t >= 20:
+                i.size = 15
+                if i.t >= 20:
                     del self.effect_group[0]
 
         
@@ -683,6 +734,13 @@ class Game():
 
             # 판정선 아래 공간
             pygame.draw.rect(screen, BLACK, [FRAME_X, FRAME_HEIGHT* 7/9 + 10, FRAME_WIDTH, FRAME_HEIGHT*2/9 - 15])
+            
+            self.button_d.buttons(screen, 0, self.pressed_d)
+            self.button_f.buttons(screen, 1, self.pressed_f)
+            self.button_j.buttons(screen, 2, self.pressed_j)
+            self.button_k.buttons(screen, 3, self.pressed_k)
+            
+            
             # HP 바 그리기
             self.hp_length = FRAME_HEIGHT/2
             self.hp_half = self.hp - 50
@@ -761,12 +819,9 @@ class Game():
             if self.best_scoring == True:
                 self.draw_text(screen, "BEST SCORE!", self.font_100, 450, 800, DARK_ORANGE)
 
-
         if self.index == 3 or self.index == 4 : # 스피드, 딜레이 상황 표시
             self.draw_text(screen, "[O] SPEED : " + str(self.speed) + " [P]", self.font_30, 150, FRAME_HEIGHT - 150, LEAF_GREEN)
             self.draw_text(screen, "[Q] DELAY : " + str(self.delay) + "[W]", self.font_30, 150, FRAME_HEIGHT - 100, LEAF_GREEN)
-
-
 
         if self.index == 3: # 곡 선택 인덱스
             for i in range(-1, 2):
@@ -796,12 +851,9 @@ class Game():
             if self.help_on == True:
                 screen.blit(self.main_help, [0, 0])
             
-    def display_frame(self, screen, keycolor, fontcolor): #게임 프레임 그리기 - 플레이하는 부분
+    def display_frame(self, screen): #게임 프레임 그리기 - 플레이하는 부분
         if self.index == 4: # 게임 플레이 인덱스
             screen.blit(self.main_background_dark, [0, 0])
-            x = FRAME_X + KEY_SPACE
-            y = FRAME_HEIGHT * 7/9 + 25
-            keyframe_size = FRAME_WIDTH/4 - KEY_SPACE*2
             for i in range(3): #노트 구분 선
                 pygame.draw.line(screen, GRAY, [FRAME_X + (i + 1)*(FRAME_WIDTH/4), 0], [FRAME_X + (i + 1)*(FRAME_WIDTH/4), FRAME_HEIGHT + LINE_WIDTH*2], width=1)
             #게임 프레임
@@ -1004,7 +1056,7 @@ class Game():
     
     def start(self, Time):
         try:
-            txt_path = "assets/logs/child.txt"
+            txt_path = self.chebo_list[self.music_index]
         except:
             txt_path = "assets/logs/chebo_path.txt"
         with open(txt_path, 'r') as file:
@@ -1037,8 +1089,6 @@ class Game():
                 self.put_note_2(lines_final[i][0], lines_final[i][2] + self.delay - 2, lines_final[i][3], lines_final[i][4], Time)
             if lines_final[i][1] == 3:
                 self.put_note_3(lines_final[i][0], lines_final[i][2] + self.delay - 2, lines_final[i][3], lines_final[i][4], Time)
-
-    
     
     def reset(self):
         # 기초 변수들 초기화
@@ -1095,7 +1145,7 @@ def main():
         Time = time.time() - gst
         done = game.process_event(screen)
         game.run_logic(Time, screen)
-        game.display_frame(screen, LEAF_GREEN, WHITE)
+        game.display_frame(screen)
         game.display_object(screen)
         pygame.display.flip()
         clock.tick_busy_loop(MAXFRAME)
