@@ -536,7 +536,8 @@ class Game():
         if self.starting == True:
             self.start(Time)
         if self.hp <= 0:
-            self.index = 2
+            #self.index = 2
+            pass
         self.long_note_decesion(screen)
         if self.index == 4:
             # 노트 D
@@ -896,7 +897,7 @@ class Game():
             if event.type == pygame.KEYDOWN:
                 
                 if event.key == pygame.K_m:
-                    print(self.Time)
+                    print(round(self.Time, 3))
                 if self.index == 4: # 게임 플레이 시
                     if event.key == pygame.K_d: # d 키를 누름
                         self.pressed_d = True
@@ -1028,30 +1029,38 @@ class Game():
         if self.Time > pos and self.toggle == toggle and code == 0:
             self.notes_0.append(Note(0, Time))
             self.toggle += 1
+            print(toggle)
         if self.Time > pos and self.toggle == toggle and code == 1:
             self.notes_0.append(Note_long(0, Time, long, self.speed))
             self.toggle += 1
+            print(toggle)
     def put_note_1(self,toggle, pos, code, long, Time):
         if self.Time > pos  and self.toggle == toggle and code == 0:
             self.notes_1.append(Note(1, Time))
             self.toggle += 1
+            print(toggle)
         if self.Time > pos  and self.toggle == toggle and code == 1:
             self.notes_1.append(Note_long(1, Time, long, self.speed))
             self.toggle += 1
+            print(toggle)
     def put_note_2(self, toggle, pos, code, long, Time):
         if self.Time > pos and self.toggle == toggle and code == 0:
             self.notes_2.append(Note(2, Time))
             self.toggle += 1
+            print(toggle)
         if self.Time > pos and self.toggle == toggle and code == 1:
             self.notes_2.append(Note_long(2, Time, long, self.speed))
             self.toggle += 1
+            print(toggle)
     def put_note_3(self, toggle, pos, code, long, Time):
         if self.Time > pos and self.toggle == toggle and code == 0:
             self.notes_3.append(Note(3, Time))
             self.toggle += 1
+            print(toggle)
         if self.Time > pos and self.toggle == toggle and code == 1:
             self.notes_3.append(Note_long(3, Time, long, self.speed))
             self.toggle += 1
+            print(toggle)
             
     
     def start(self, Time):
@@ -1089,7 +1098,9 @@ class Game():
                 self.put_note_2(lines_final[i][0], lines_final[i][2] + self.delay - 2, lines_final[i][3], lines_final[i][4], Time)
             if lines_final[i][1] == 3:
                 self.put_note_3(lines_final[i][0], lines_final[i][2] + self.delay - 2, lines_final[i][3], lines_final[i][4], Time)
-    
+            if lines_final[i][1] == 4 and self.Time > lines_final[i][2]:
+                self.starting = False
+                self.index = 2
     def reset(self):
         # 기초 변수들 초기화
         self.starting = False
