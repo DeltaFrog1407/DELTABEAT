@@ -536,8 +536,9 @@ class Game():
         if self.starting == True:
             self.start(Time)
         if self.hp <= 0:
-            #self.index = 2
-            pass
+            self.escape = True
+            self.starting = False
+            self.index = 2
         self.long_note_decesion(screen)
         if self.index == 4:
             # 노트 D
